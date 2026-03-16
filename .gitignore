@@ -23,5 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 
-# Push script
+# Scripts
 git_push.py
+run_app.py
