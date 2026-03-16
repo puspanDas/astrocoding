@@ -1,7 +1,14 @@
 import { useRef, useEffect } from 'react'
+import { useTheme } from '../context/ThemeContext'
 
 export default function StarField() {
   const canvasRef = useRef(null)
+  const { resolvedTheme } = useTheme()
+  const themeRef = useRef(resolvedTheme)
+
+  useEffect(() => {
+    themeRef.current = resolvedTheme
+  }, [resolvedTheme])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -56,7 +63,8 @@ export default function StarField() {
         ctx.beginPath()
         ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2)
         ctx.fillStyle = star.color
-        ctx.globalAlpha = star.opacity * 0.8
+        const alphaMultiplier = themeRef.current === 'light' ? 0.15 : 0.8
+        ctx.globalAlpha = star.opacity * alphaMultiplier
         ctx.fill()
       }
 
@@ -69,7 +77,8 @@ export default function StarField() {
         const endY = s.y + Math.sin(s.angle) * s.length
 
         const gradient = ctx.createLinearGradient(s.x, s.y, endX, endY)
-        gradient.addColorStop(0, `rgba(255, 255, 255, ${s.opacity})`)
+        const shootAlpha = themeRef.current === 'light' ? s.opacity * 0.2 : s.opacity
+        gradient.addColorStop(0, `rgba(255, 255, 255, ${shootAlpha})`)
         gradient.addColorStop(1, 'rgba(255, 255, 255, 0)')
 
         ctx.beginPath()

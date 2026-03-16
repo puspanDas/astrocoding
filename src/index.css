@@ -67,6 +67,53 @@
   --radius-xl: 28px;
 }
 
+/* ============================================
+   Light Theme Overrides
+   ============================================ */
+[data-theme="light"] {
+  /* Core Colors */
+  --space-void: #f5f6fa;
+  --space-deep: #ebedf5;
+  --space-mid: #e0e3ef;
+  --space-surface: #d2d6e8;
+  --space-elevated: #c5c9dd;
+
+  /* Nebula Accent Colors (slightly deeper for contrast on light bg) */
+  --nebula-purple: #5b2fd4;
+  --nebula-purple-light: #7c4dff;
+  --nebula-purple-glow: rgba(91, 47, 212, 0.25);
+  --nebula-blue: #2563eb;
+  --nebula-blue-light: #3b82f6;
+  --nebula-cyan: #0891b2;
+
+  /* Faction Colors */
+  --python-primary: #059669;
+  --python-secondary: #10b981;
+  --python-glow: rgba(5, 150, 105, 0.2);
+  --java-primary: #d97706;
+  --java-secondary: #f59e0b;
+  --java-glow: rgba(217, 119, 6, 0.2);
+  --cpp-primary: #dc2626;
+  --cpp-secondary: #ef4444;
+  --cpp-glow: rgba(220, 38, 38, 0.2);
+
+  /* Text */
+  --text-primary: #1a1d2e;
+  --text-secondary: #555a6e;
+  --text-muted: #8b8fa3;
+
+  /* Functional */
+  --success: #059669;
+  --warning: #d97706;
+  --error: #dc2626;
+  --info: #2563eb;
+
+  /* Surfaces */
+  --glass-bg: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(91, 47, 212, 0.12);
+  --glass-border-hover: rgba(91, 47, 212, 0.3);
+}
+
 /* Reset & Base */
 *,
 *::before,
@@ -243,6 +290,18 @@ ul, ol {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--space-elevated);
+}
+
+[data-theme="light"] ::-webkit-scrollbar-track {
+  background: #f0f1f7;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: #c5c9dd;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: #a5a9bd;
 }
 
 /* Animations */

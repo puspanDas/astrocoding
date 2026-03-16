@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Rocket, Menu, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import ThemeSwitcher from './ThemeSwitcher'
 import './Navbar.css'
 
 export default function Navbar() {
@@ -39,6 +40,7 @@ export default function Navbar() {
           <a href="/#factions" className="navbar__link">Factions</a>
           <a href="/#engine" className="navbar__link">Engine</a>
           <a href="/#personas" className="navbar__link">For Everyone</a>
+          <ThemeSwitcher />
           <Link to="/play" className="btn-primary navbar__cta">
             <span>Launch Mission</span>
             <Rocket size={16} />

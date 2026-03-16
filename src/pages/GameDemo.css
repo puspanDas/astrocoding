@@ -462,3 +462,65 @@
     padding: 4px 8px;
   }
 }
+
+/* Light Theme */
+[data-theme="light"] .game-demo__topbar {
+  background: rgba(245, 246, 250, 0.92);
+}
+
+[data-theme="light"] .game-demo__editor-panel {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+[data-theme="light"] .editor-header {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="light"] .lang-selector {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .lang-dropdown {
+  background: #f0f1f7;
+}
+
+[data-theme="light"] .lang-dropdown__item:hover {
+  background: rgba(91, 47, 212, 0.08);
+}
+
+[data-theme="light"] .editor-btn {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .mode-switcher {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .mode-switcher__btn:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .game-console {
+  background: rgba(26, 29, 46, 0.04);
+}
+
+[data-theme="light"] .game-console__header {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="light"] .game-demo__game-panel {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+[data-theme="light"] .game-panel-header {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="light"] .game-demo__chat-toggle {
+  background: rgba(91, 47, 212, 0.06);
+}
+
+[data-theme="light"] .game-demo__chat-toggle:hover {
+  background: rgba(91, 47, 212, 0.1);
+}
+

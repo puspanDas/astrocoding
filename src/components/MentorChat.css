@@ -140,3 +140,26 @@
   transform: scale(1.05);
   box-shadow: 0 4px 15px var(--nebula-purple-glow);
 }
+
+/* Light Theme */
+[data-theme="light"] .mentor-chat {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+[data-theme="light"] .mentor-chat__header {
+  background: rgba(91, 47, 212, 0.06);
+}
+
+[data-theme="light"] .mentor-chat__msg--droid {
+  background: rgba(91, 47, 212, 0.08);
+  border-color: rgba(91, 47, 212, 0.12);
+}
+
+[data-theme="light"] .mentor-chat__input-row {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="light"] .mentor-chat__input {
+  background: rgba(255, 255, 255, 0.8);
+}
+

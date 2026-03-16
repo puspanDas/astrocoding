@@ -126,3 +126,22 @@
     font-size: 1.2rem;
   }
 }
+
+/* Light Theme */
+[data-theme="light"] .navbar--scrolled {
+  background: rgba(245, 246, 250, 0.88);
+}
+
+[data-theme="light"] .navbar__logo-text {
+  background: linear-gradient(135deg, #1a1d2e, var(--nebula-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@media (max-width: 768px) {
+  [data-theme="light"] .navbar__links {
+    background: rgba(245, 246, 250, 0.95);
+  }
+}
+

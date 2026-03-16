@@ -49,3 +49,14 @@
   color: var(--text-secondary);
   line-height: 1.6;
 }
+
+/* Light Theme */
+[data-theme="light"] .feature-card__icon {
+  background: linear-gradient(135deg, rgba(91, 47, 212, 0.08), rgba(37, 99, 235, 0.08));
+  border-color: rgba(91, 47, 212, 0.12);
+}
+
+[data-theme="light"] .feature-card:hover .feature-card__icon {
+  background: linear-gradient(135deg, rgba(91, 47, 212, 0.15), rgba(37, 99, 235, 0.15));
+}
+
