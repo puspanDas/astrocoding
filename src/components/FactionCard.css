@@ -1,0 +1,91 @@
+.faction-card {
+  padding: 36px 28px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.faction-card__badge {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  transition: var(--transition-base);
+}
+
+/* Python Faction */
+.faction-card--green .faction-card__badge {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(52, 211, 153, 0.1));
+  border: 2px solid var(--python-primary);
+  box-shadow: 0 0 20px var(--python-glow);
+}
+
+.faction-card--green:hover {
+  border-color: rgba(16, 185, 129, 0.4);
+  box-shadow: 0 20px 60px var(--python-glow);
+}
+
+/* Java Faction */
+.faction-card--yellow .faction-card__badge {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(251, 191, 36, 0.1));
+  border: 2px solid var(--java-primary);
+  box-shadow: 0 0 20px var(--java-glow);
+}
+
+.faction-card--yellow:hover {
+  border-color: rgba(245, 158, 11, 0.4);
+  box-shadow: 0 20px 60px var(--java-glow);
+}
+
+/* C++ Faction */
+.faction-card--red .faction-card__badge {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(248, 113, 113, 0.1));
+  border: 2px solid var(--cpp-primary);
+  box-shadow: 0 0 20px var(--cpp-glow);
+}
+
+.faction-card--red:hover {
+  border-color: rgba(239, 68, 68, 0.4);
+  box-shadow: 0 20px 60px var(--cpp-glow);
+}
+
+.faction-card__name {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  margin-bottom: 10px;
+}
+
+.faction-card__desc {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.faction-card__features {
+  text-align: left;
+}
+
+.faction-card__feature {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  padding: 6px 0;
+}
+
+.faction-card__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.faction-card--green .faction-card__dot { background: var(--python-primary); }
+.faction-card--yellow .faction-card__dot { background: var(--java-primary); }
+.faction-card--red .faction-card__dot { background: var(--cpp-primary); }
