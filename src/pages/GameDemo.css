@@ -13,7 +13,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 10px 20px;
-  background: rgba(5, 8, 22, 0.9);
+  background: rgba(5, 8, 22, 0.92);
   border-bottom: 1px solid var(--glass-border);
   backdrop-filter: blur(20px);
   position: relative;
@@ -22,7 +22,7 @@
   gap: 12px;
 }
 
-.game-demo__mission {
+.game-demo__mission-info {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -33,11 +33,25 @@
   animation: float 3s ease-in-out infinite;
 }
 
-.game-demo__mission-text {
+.game-demo__mission-title {
   font-family: var(--font-display);
   font-size: 0.85rem;
   color: var(--text-primary);
 }
+
+.game-demo__difficulty {
+  display: flex;
+  gap: 2px;
+}
+
+.difficulty-star {
+  color: var(--java-secondary);
+  animation: twinkle 2s ease infinite;
+}
+
+.difficulty-star:nth-child(2) { animation-delay: 0.3s; }
+.difficulty-star:nth-child(3) { animation-delay: 0.6s; }
+.difficulty-star:nth-child(4) { animation-delay: 0.9s; }
 
 .game-demo__controls {
   display: flex;
@@ -45,47 +59,21 @@
   gap: 16px;
 }
 
-/* Mode Switcher */
-.mode-switcher {
+.game-demo__concepts {
   display: flex;
-  background: rgba(10, 14, 39, 0.6);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-}
-
-.mode-switcher__btn {
-  display: flex;
-  align-items: center;
   gap: 6px;
-  padding: 6px 14px;
-  background: transparent;
-  color: var(--text-muted);
-  font-size: 0.75rem;
-  border: none;
-  transition: var(--transition-fast);
-  cursor: pointer;
 }
 
-.mode-switcher__btn:hover {
-  color: var(--text-secondary);
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.mode-switcher__btn--active {
-  color: var(--text-primary);
-  background: rgba(108, 60, 224, 0.2);
-}
-
-.mode-switcher__icon {
-  font-size: 0.9rem;
-}
-
-.mode-switcher__label {
+.concept-tag {
+  padding: 3px 10px;
+  font-size: 0.67rem;
   font-family: var(--font-display);
-  font-size: 0.65rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  color: var(--nebula-cyan);
+  background: rgba(6, 182, 212, 0.1);
+  border: 1px solid rgba(6, 182, 212, 0.2);
+  border-radius: 20px;
 }
 
 /* Rewards */
@@ -119,19 +107,147 @@
 /* ===== MAIN SPLIT ===== */
 .game-demo__main {
   flex: 1;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
   min-height: 0;
   position: relative;
   z-index: 1;
 }
 
+/* ===== MISSION SIDEBAR ===== */
+.mission-sidebar {
+  background: rgba(5, 8, 22, 0.85);
+  border-right: 1px solid var(--glass-border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  backdrop-filter: blur(20px);
+}
+
+.mission-sidebar__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.mission-sidebar__list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.mission-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  text-align: left;
+  margin-bottom: 2px;
+}
+
+.mission-item:hover {
+  background: rgba(108, 60, 224, 0.08);
+  border-color: rgba(108, 60, 224, 0.15);
+  color: var(--text-primary);
+}
+
+.mission-item--active {
+  background: rgba(108, 60, 224, 0.15);
+  border-color: rgba(108, 60, 224, 0.3);
+  color: var(--text-primary);
+}
+
+.mission-item--complete .mission-item__title {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.mission-item__icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.mission-item__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.mission-item__title {
+  display: block;
+  font-weight: 500;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mission-item__diff {
+  display: block;
+  font-size: 0.65rem;
+  color: var(--java-secondary);
+  margin-top: 2px;
+}
+
+.mission-item__diff.free {
+  color: var(--python-secondary);
+}
+
+.mission-item__check {
+  color: var(--success);
+  flex-shrink: 0;
+}
+
+.mission-sidebar__brief {
+  padding: 12px 14px;
+  border-top: 1px solid var(--glass-border);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  background: rgba(108, 60, 224, 0.05);
+}
+
+/* Sidebar Toggle */
+.sidebar-toggle {
+  width: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 14, 39, 0.6);
+  border: none;
+  border-right: 1px solid var(--glass-border);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.sidebar-toggle:hover {
+  color: var(--text-primary);
+  background: rgba(108, 60, 224, 0.1);
+}
+
 /* ===== EDITOR PANEL ===== */
 .game-demo__editor-panel {
+  flex: 1;
   display: flex;
   flex-direction: column;
   border-right: 1px solid var(--glass-border);
   background: rgba(5, 8, 22, 0.6);
+  min-width: 0;
 }
 
 .editor-header {
@@ -141,68 +257,36 @@
   padding: 8px 12px;
   border-bottom: 1px solid var(--glass-border);
   background: rgba(10, 14, 39, 0.5);
+  gap: 8px;
 }
 
-.lang-selector {
+.editor-header__left {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 12px;
-  border-radius: var(--radius-sm);
-  background: rgba(26, 31, 74, 0.6);
-  border: 1px solid var(--glass-border);
-  cursor: pointer;
-  transition: var(--transition-fast);
-  position: relative;
-  font-size: 0.82rem;
-  color: var(--text-primary);
 }
 
-.lang-selector:hover {
-  border-color: var(--nebula-purple);
-}
-
-.lang-dropdown {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  min-width: 220px;
-  background: var(--space-mid);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  z-index: 100;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-}
-
-.lang-dropdown__item {
+.editor-lang-badge {
   display: flex;
   align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 10px 14px;
-  background: transparent;
-  border: none;
-  color: var(--text-secondary);
-  font-size: 0.82rem;
-  cursor: pointer;
-  transition: var(--transition-fast);
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: var(--radius-sm);
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  color: var(--java-secondary);
+  font-size: 0.78rem;
+  font-weight: 500;
 }
 
-.lang-dropdown__item:hover {
-  background: rgba(108, 60, 224, 0.1);
-  color: var(--text-primary);
-}
-
-.lang-dropdown__item--active {
-  background: rgba(108, 60, 224, 0.15);
-  color: var(--nebula-purple-light);
-}
-
-.lang-dropdown__faction {
-  margin-left: auto;
-  font-size: 0.7rem;
-  color: var(--text-muted);
+.editor-lang-badge span {
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--java-primary);
+  background: rgba(245, 158, 11, 0.15);
+  padding: 1px 6px;
+  border-radius: 3px;
 }
 
 .editor-header__actions {
@@ -240,83 +324,94 @@
   border-color: var(--python-primary);
 }
 
+.editor-btn--hint {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.2);
+  color: var(--java-secondary);
+}
+
+.editor-btn--hint:hover {
+  background: rgba(245, 158, 11, 0.18);
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.editor-btn--ref {
+  background: rgba(6, 182, 212, 0.1);
+  border-color: rgba(6, 182, 212, 0.2);
+  color: var(--nebula-cyan);
+}
+
+.editor-btn--ref:hover {
+  background: rgba(6, 182, 212, 0.18);
+  border-color: rgba(6, 182, 212, 0.4);
+}
+
 .editor-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
+/* ===== API REFERENCE ===== */
+.api-reference {
+  overflow: hidden;
+  border-bottom: 1px solid var(--glass-border);
+  background: rgba(6, 182, 212, 0.04);
+}
+
+.api-reference__content {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 12px 16px;
+}
+
+.api-ref-group h4 {
+  font-size: 0.72rem;
+  font-family: var(--font-display);
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.api-ref-group code {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--nebula-cyan);
+  padding: 2px 0;
+  font-family: 'Fira Code', 'Courier New', monospace;
+}
+
+/* ===== HINT PANEL ===== */
+.hint-panel {
+  overflow: hidden;
+  border-bottom: 1px solid var(--glass-border);
+  background: rgba(245, 158, 11, 0.04);
+  padding: 8px 14px;
+}
+
+.hint-panel__item {
+  font-size: 0.78rem;
+  color: var(--java-secondary);
+  padding: 4px 0;
+  line-height: 1.5;
+}
+
+/* ===== EDITOR BODY ===== */
 .editor-body {
   flex: 1;
-  min-height: 300px;
+  min-height: 250px;
 }
 
-/* Blueprint Mode */
-.blueprint-editor {
-  padding: 20px;
-  height: 100%;
-}
-
-.blueprint-editor__hint {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  margin-bottom: 20px;
-}
-
-.blueprint-editor__blocks {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.bp-block {
-  display: inline-flex;
-  align-items: center;
-  padding: 12px 20px;
-  border-radius: var(--radius-sm);
-  font-family: 'Courier New', monospace;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: grab;
-  transition: var(--transition-fast);
-  user-select: none;
-}
-
-.bp-block--green {
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  color: var(--python-secondary);
-}
-
-.bp-block--blue {
-  background: rgba(59, 130, 246, 0.12);
-  border: 1px solid rgba(59, 130, 246, 0.25);
-  color: var(--nebula-blue-light);
-}
-
-.bp-block--purple {
-  background: rgba(108, 60, 224, 0.12);
-  border: 1px solid rgba(108, 60, 224, 0.25);
-  color: var(--nebula-purple-light);
-}
-
-.bp-block--yellow {
-  background: rgba(245, 158, 11, 0.12);
-  border: 1px solid rgba(245, 158, 11, 0.25);
-  color: var(--java-secondary);
-}
-
-.bp-block--cyan {
-  background: rgba(6, 182, 212, 0.12);
-  border: 1px solid rgba(6, 182, 212, 0.25);
-  color: var(--nebula-cyan);
-}
-
-/* Console */
+/* ===== CONSOLE ===== */
 .game-console {
   border-top: 1px solid var(--glass-border);
   background: rgba(5, 8, 22, 0.9);
-  max-height: 200px;
+  max-height: 0;
   overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.game-console--visible {
+  max-height: 220px;
 }
 
 .game-console__header {
@@ -332,6 +427,22 @@
   font-family: var(--font-display);
 }
 
+.game-console__clear {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.game-console__clear:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
 .game-console__body {
   padding: 8px 12px;
   max-height: 160px;
@@ -339,18 +450,49 @@
 }
 
 .game-console__line {
-  font-family: 'Courier New', monospace;
-  font-size: 0.75rem;
-  color: var(--python-secondary);
+  font-family: 'Fira Code', 'Courier New', monospace;
+  font-size: 0.73rem;
   padding: 2px 0;
-  white-space: nowrap;
+  white-space: pre-wrap;
+  word-break: break-word;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.game-console__line--system {
+  color: var(--text-muted);
+}
+
+.game-console__line--info {
+  color: var(--nebula-blue-light);
+}
+
+.game-console__line--log {
+  color: var(--text-primary);
+}
+
+.game-console__line--error {
+  color: var(--error);
+}
+
+.game-console__line--success {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.game-console__line--hint {
+  color: var(--java-secondary);
 }
 
 /* ===== GAME PANEL ===== */
 .game-demo__game-panel {
+  flex: 1;
   display: flex;
   flex-direction: column;
   background: rgba(5, 8, 22, 0.4);
+  position: relative;
+  min-width: 0;
 }
 
 .game-panel-header {
@@ -364,16 +506,15 @@
   color: var(--text-secondary);
 }
 
-.game-panel-expand {
-  background: none;
-  border: none;
+.game-panel-header__terrain {
+  font-size: 0.65rem;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
   color: var(--text-muted);
-  cursor: pointer;
-  transition: var(--transition-fast);
-}
-
-.game-panel-expand:hover {
-  color: var(--text-primary);
+  padding: 2px 10px;
+  background: rgba(108, 60, 224, 0.1);
+  border-radius: 10px;
 }
 
 .game-canvas-wrapper {
@@ -382,11 +523,86 @@
   min-height: 250px;
 }
 
-.game-canvas {
+/* ===== MISSION COMPLETE OVERLAY ===== */
+.mission-complete-overlay {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+
+.mission-complete-card {
+  background: rgba(10, 14, 39, 0.95);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 32px 40px;
+  text-align: center;
+  max-width: 380px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px var(--python-glow);
+}
+
+.mission-complete__icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+  animation: float 2s ease-in-out infinite;
+}
+
+.mission-complete-card h3 {
+  font-size: 1.4rem;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, var(--python-secondary), var(--nebula-cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.mission-complete-card p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.mission-complete__rewards {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.reward-earn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  color: var(--nebula-blue-light);
+}
+
+.reward-earn--core {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.25);
+  color: var(--java-secondary);
+}
+
+.mission-complete__actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.mission-complete__actions .btn-primary,
+.mission-complete__actions .btn-secondary {
+  padding: 10px 20px;
+  font-size: 0.85rem;
 }
 
 /* ===== CHAT ===== */
@@ -429,9 +645,23 @@
 }
 
 /* ===== RESPONSIVE ===== */
-@media (max-width: 900px) {
-  .game-demo__main {
+@media (max-width: 1000px) {
+  .mission-sidebar {
+    display: none;
+  }
+
+  .sidebar-toggle {
+    display: none;
+  }
+
+  .api-reference__content {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 800px) {
+  .game-demo__main {
+    flex-direction: column;
   }
 
   .game-demo__editor-panel {
@@ -443,7 +673,11 @@
     min-height: 200px;
   }
 
-  .mode-switcher__label {
+  .editor-header {
+    flex-wrap: wrap;
+  }
+
+  .game-demo__concepts {
     display: none;
   }
 }
@@ -453,17 +687,25 @@
     padding: 8px 12px;
   }
 
-  .game-demo__mission-text {
-    font-size: 0.7rem;
+  .game-demo__mission-title {
+    font-size: 0.72rem;
   }
 
   .reward-badge {
     font-size: 0.7rem;
     padding: 4px 8px;
   }
+
+  .editor-btn span {
+    display: none;
+  }
+
+  .editor-btn {
+    padding: 6px 10px;
+  }
 }
 
-/* Light Theme */
+/* ===== LIGHT THEME ===== */
 [data-theme="light"] .game-demo__topbar {
   background: rgba(245, 246, 250, 0.92);
 }
@@ -476,27 +718,19 @@
   background: rgba(0, 0, 0, 0.03);
 }
 
-[data-theme="light"] .lang-selector {
-  background: rgba(0, 0, 0, 0.04);
+[data-theme="light"] .mission-sidebar {
+  background: rgba(245, 246, 250, 0.95);
 }
 
-[data-theme="light"] .lang-dropdown {
-  background: #f0f1f7;
+[data-theme="light"] .mission-item:hover {
+  background: rgba(91, 47, 212, 0.06);
 }
 
-[data-theme="light"] .lang-dropdown__item:hover {
-  background: rgba(91, 47, 212, 0.08);
+[data-theme="light"] .mission-item--active {
+  background: rgba(91, 47, 212, 0.1);
 }
 
 [data-theme="light"] .editor-btn {
-  background: rgba(0, 0, 0, 0.04);
-}
-
-[data-theme="light"] .mode-switcher {
-  background: rgba(0, 0, 0, 0.04);
-}
-
-[data-theme="light"] .mode-switcher__btn:hover {
   background: rgba(0, 0, 0, 0.04);
 }
 
@@ -524,3 +758,14 @@
   background: rgba(91, 47, 212, 0.1);
 }
 
+[data-theme="light"] .mission-complete-card {
+  background: rgba(245, 246, 250, 0.97);
+}
+
+[data-theme="light"] .api-reference {
+  background: rgba(6, 182, 212, 0.04);
+}
+
+[data-theme="light"] .sidebar-toggle {
+  background: rgba(245, 246, 250, 0.8);
+}

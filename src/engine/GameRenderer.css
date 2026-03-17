@@ -1,0 +1,48 @@
+/* ===== GAME RENDERER ===== */
+.game-renderer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 250px;
+}
+
+.game-renderer__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+}
+
+.game-renderer__status {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.72rem;
+  font-family: var(--font-display);
+  color: rgba(255, 255, 255, 0.5);
+  padding: 4px 14px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 20px;
+  backdrop-filter: blur(8px);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.game-renderer__success-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: #10b981;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+  z-index: 10;
+  text-shadow: 0 0 30px rgba(16, 185, 129, 0.5);
+}

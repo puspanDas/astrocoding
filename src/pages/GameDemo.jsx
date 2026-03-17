@@ -1,326 +1,207 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import Editor from '@monaco-editor/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Play, RotateCcw, Rocket, Cpu, Trophy, Gem,
-  ChevronDown, Maximize2, Minimize2
+  Play, RotateCcw, Rocket, Cpu, Trophy, Gem, BookOpen,
+  ChevronDown, ChevronRight, Maximize2, Minimize2,
+  Lightbulb, CheckCircle, AlertCircle, Sparkles, Target
 } from 'lucide-react'
 import MentorChat from '../components/MentorChat'
 import StarField from '../components/StarField'
+import GameRenderer from '../engine/GameRenderer'
+import useCodeSandbox from '../engine/CodeSandbox'
+import missions from '../engine/missions'
+import { transpileToJS } from '../engine/transpiler'
 import './GameDemo.css'
 
 const LANGUAGES = {
-  python: {
-    label: 'Python',
-    faction: 'Python Federation',
-    color: '#10b981',
-    icon: '🐍',
-    defaultCode: `# Mission: Navigate your rover out of the crater!
-# Write code to make the rover climb upward.
-
-def escape_crater(rover):
-    for i in range(5):
-        rover.move_forward()
-        rover.thrust(power=i * 2)
-    
-    if rover.altitude > 10:
-        rover.send_signal("ESCAPED!")
-        return True
-    return False
-
-# Execute your solution
-escape_crater(rover)
-`,
-  },
-  java: {
-    label: 'Java',
-    faction: 'Java Syndicate',
-    color: '#f59e0b',
-    icon: '☕',
-    defaultCode: `// Mission: Navigate your rover out of the crater!
-// Write code to make the rover climb upward.
-
-public class Mission {
-    public static boolean escapeCrater(Rover rover) {
-        for (int i = 0; i < 5; i++) {
-            rover.moveForward();
-            rover.thrust(i * 2);
-        }
-        
-        if (rover.getAltitude() > 10) {
-            rover.sendSignal("ESCAPED!");
-            return true;
-        }
-        return false;
-    }
+  javascript: { label: 'JavaScript', icon: 'JS', faction: 'Core System' },
+  python: { label: 'Python', icon: '🐍', faction: 'Python Federation' },
+  java: { label: 'Java', icon: '☕', faction: 'Java Syndicate' },
+  cpp: { label: 'C++', icon: '⚡', faction: 'C++ Vanguard' }
 }
-`,
-  },
-  cpp: {
-    label: 'C++',
-    faction: 'C++ Vanguard',
-    color: '#ef4444',
-    icon: '⚡',
-    defaultCode: `// Mission: Navigate your rover out of the crater!
-// Write code to make the rover climb upward.
-
-#include "rover.h"
-
-bool escapeCrater(Rover& rover) {
-    for (int i = 0; i < 5; i++) {
-        rover.moveForward();
-        rover.thrust(i * 2);
-    }
-    
-    if (rover.getAltitude() > 10) {
-        rover.sendSignal("ESCAPED!");
-        return true;
-    }
-    return false;
-}
-`,
-  },
-}
-
-const MODES = [
-  { id: 'blueprint', label: 'Blueprint', ages: '6-9', icon: '🧩' },
-  { id: 'scaffold', label: 'Scaffold', ages: '10-15', icon: '🔧' },
-  { id: 'terminal', label: 'Terminal', ages: '16+', icon: '💻' },
-]
 
 export default function GameDemo() {
-  const [language, setLanguage] = useState('python')
-  const [mode, setMode] = useState('scaffold')
-  const [code, setCode] = useState(LANGUAGES.python.defaultCode)
+  const [currentMission, setCurrentMission] = useState(0)
+  const [language, setLanguage] = useState('javascript')
+  const [showLangDropdown, setShowLangDropdown] = useState(false)
+  const [code, setCode] = useState(missions[0].starterCode.javascript)
   const [isRunning, setIsRunning] = useState(false)
-  const [roverState, setRoverState] = useState({ phase: 'idle', step: 0 })
+  const [consoleOutput, setConsoleOutput] = useState([])
   const [scrap, setScrap] = useState(0)
   const [cores, setCores] = useState(0)
-  const [showLangDropdown, setShowLangDropdown] = useState(false)
-  const [chatExpanded, setChatExpanded] = useState(true)
-  const [consoleOutput, setConsoleOutput] = useState([])
-  const canvasRef = useRef(null)
+  const [chatExpanded, setChatExpanded] = useState(false)
+  const [missionSidebar, setMissionSidebar] = useState(true)
+  const [hintIndex, setHintIndex] = useState(-1)
+  const [missionResult, setMissionResult] = useState(null) // null | 'success' | 'fail'
+  const [showMissionComplete, setShowMissionComplete] = useState(false)
+  const [completedMissions, setCompletedMissions] = useState(new Set())
+  const [showApiRef, setShowApiRef] = useState(false)
 
-  // Draw game environment
+  const rendererRef = useRef(null)
+  const consoleEndRef = useRef(null)
+  const { execute, ready } = useCodeSandbox()
+
+  const mission = missions[currentMission]
+
+  // Auto-scroll console to bottom
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    let animFrame
-
-    function resize() {
-      canvas.width = canvas.parentElement.clientWidth
-      canvas.height = canvas.parentElement.clientHeight
+    if (consoleEndRef.current) {
+      consoleEndRef.current.scrollIntoView({ behavior: 'smooth' })
     }
+  }, [consoleOutput])
 
-    function drawScene() {
-      const w = canvas.width
-      const h = canvas.height
-
-      // Clear
-      ctx.fillStyle = '#0a0e27'
-      ctx.fillRect(0, 0, w, h)
-
-      // Stars
-      for (let i = 0; i < 60; i++) {
-        const x = (i * 137.508) % w
-        const y = (i * 97.123) % h
-        const size = (i % 3) + 1
-        ctx.fillStyle = `rgba(255, 255, 255, ${0.3 + (i % 5) * 0.14})`
-        ctx.beginPath()
-        ctx.arc(x, y, size * 0.5, 0, Math.PI * 2)
-        ctx.fill()
-      }
-
-      // Planet surface (crater)
-      const craterY = h * 0.65
-      ctx.fillStyle = '#1a1040'
-      ctx.beginPath()
-      ctx.moveTo(0, craterY)
-      // crater shape
-      ctx.quadraticCurveTo(w * 0.15, craterY - 20, w * 0.25, craterY + 30)
-      ctx.quadraticCurveTo(w * 0.4, craterY + 80, w * 0.5, craterY + 60)
-      ctx.quadraticCurveTo(w * 0.6, craterY + 80, w * 0.75, craterY + 30)
-      ctx.quadraticCurveTo(w * 0.85, craterY - 20, w, craterY)
-      ctx.lineTo(w, h)
-      ctx.lineTo(0, h)
-      ctx.closePath()
-      ctx.fill()
-
-      // Surface details
-      ctx.strokeStyle = 'rgba(108, 60, 224, 0.2)'
-      ctx.lineWidth = 1
-      for (let i = 0; i < 8; i++) {
-        ctx.beginPath()
-        const sx = w * 0.1 + i * w * 0.1
-        const sy = craterY + 40 + (i % 3) * 15
-        ctx.arc(sx, sy, 4 + (i % 4) * 3, 0, Math.PI * 2)
-        ctx.stroke()
-      }
-
-      // Rover
-      const roverProgress = roverState.phase === 'running' ? roverState.step / 5 : 0
-      const roverEscaped = roverState.phase === 'success'
-      let roverX, roverY
-
-      if (roverEscaped) {
-        roverX = w * 0.5
-        roverY = h * 0.15 + Math.sin(Date.now() * 0.003) * 10
-      } else {
-        roverX = w * 0.3 + roverProgress * w * 0.25
-        roverY = craterY + 50 - roverProgress * (craterY * 0.5)
-      }
-
-      // Rover body
-      ctx.save()
-      ctx.translate(roverX, roverY)
-
-      // wheels
-      ctx.fillStyle = '#444'
-      ctx.beginPath()
-      ctx.arc(-12, 12, 5, 0, Math.PI * 2)
-      ctx.fill()
-      ctx.beginPath()
-      ctx.arc(12, 12, 5, 0, Math.PI * 2)
-      ctx.fill()
-
-      // body
-      ctx.fillStyle = '#6c3ce0'
-      ctx.fillRect(-15, -5, 30, 15)
-      ctx.fillStyle = '#a855f7'
-      ctx.fillRect(-10, -12, 20, 10)
-
-      // antenna
-      ctx.strokeStyle = '#60a5fa'
-      ctx.lineWidth = 2
-      ctx.beginPath()
-      ctx.moveTo(0, -12)
-      ctx.lineTo(0, -22)
-      ctx.stroke()
-      ctx.fillStyle = '#ef4444'
-      ctx.beginPath()
-      ctx.arc(0, -22, 3, 0, Math.PI * 2)
-      ctx.fill()
-
-      // Thruster effect when running
-      if (roverState.phase === 'running' || roverEscaped) {
-        ctx.fillStyle = `rgba(245, 158, 11, ${0.5 + Math.random() * 0.5})`
-        ctx.beginPath()
-        ctx.moveTo(-8, 15)
-        ctx.lineTo(8, 15)
-        ctx.lineTo(0, 25 + Math.random() * 15)
-        ctx.closePath()
-        ctx.fill()
-      }
-
-      ctx.restore()
-
-      // Mission text
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
-      ctx.font = '12px Inter, sans-serif'
-      ctx.textAlign = 'center'
-
-      if (roverState.phase === 'idle') {
-        ctx.fillText('Press ▶ Execute to start the mission', w / 2, h - 30)
-      } else if (roverState.phase === 'running') {
-        ctx.fillStyle = '#f59e0b'
-        ctx.fillText(`Executing... Step ${roverState.step}/5`, w / 2, h - 30)
-      } else if (roverState.phase === 'success') {
-        ctx.fillStyle = '#10b981'
-        ctx.font = 'bold 14px Orbitron, sans-serif'
-        ctx.fillText('🎉 MISSION COMPLETE!', w / 2, h - 30)
-      }
-
-      animFrame = requestAnimationFrame(drawScene)
-    }
-
-    resize()
-    drawScene()
-    window.addEventListener('resize', resize)
-    return () => {
-      cancelAnimationFrame(animFrame)
-      window.removeEventListener('resize', resize)
-    }
-  }, [roverState])
-
-  function handleRun() {
-    if (isRunning) return
-    setIsRunning(true)
+  // Handle mission change
+  function handleMissionChange(index) {
+    setCurrentMission(index)
+    setCode(missions[index].starterCode[language])
     setConsoleOutput([])
-    setRoverState({ phase: 'running', step: 0 })
-
-    const logs = [
-      '> Compiling solution...',
-      '> Initializing rover systems...',
-      '> rover.move_forward() ✓',
-      '> rover.thrust(power=0) ✓',
-      '> rover.move_forward() ✓',
-      '> rover.thrust(power=2) ✓',
-      '> rover.move_forward() ✓',
-      '> rover.thrust(power=4) ✓',
-      '> Altitude check: 12 > 10 ✓',
-      '> Signal sent: "ESCAPED!"',
-      '> ✅ Mission Complete! +50 Scrap, +1 Cosmic Core',
-    ]
-
-    logs.forEach((log, i) => {
-      setTimeout(() => {
-        setConsoleOutput(prev => [...prev, log])
-        if (i < 5) {
-          setRoverState({ phase: 'running', step: Math.min(i + 1, 5) })
-        }
-      }, (i + 1) * 400)
-    })
-
-    setTimeout(() => {
-      setRoverState({ phase: 'success', step: 5 })
-      setScrap(prev => prev + 50)
-      setCores(prev => prev + 1)
-      setIsRunning(false)
-    }, logs.length * 400 + 200)
+    setHintIndex(-1)
+    setMissionResult(null)
+    setShowMissionComplete(false)
+    if (rendererRef.current) {
+      rendererRef.current.reset(missions[index].terrain)
+    }
   }
 
-  function handleReset() {
-    setRoverState({ phase: 'idle', step: 0 })
-    setConsoleOutput([])
-  }
-
+  // Handle language change
   function handleLanguageChange(lang) {
     setLanguage(lang)
-    setCode(LANGUAGES[lang].defaultCode)
+    setCode(mission.starterCode[lang])
     setShowLangDropdown(false)
-    handleReset()
+    setConsoleOutput([])
+    setHintIndex(-1)
+    setMissionResult(null)
+    setShowMissionComplete(false)
+    if (rendererRef.current) {
+      rendererRef.current.reset(mission.terrain)
+    }
   }
 
-  const langConfig = LANGUAGES[language]
-  const monacoLang = language === 'cpp' ? 'cpp' : language
+  // Handle code execution
+  async function handleRun() {
+    if (isRunning || !ready) return
+    setIsRunning(true)
+    setConsoleOutput([{ type: 'system', text: '⚙ Compiling your code...' }])
+    setMissionResult(null)
+    setShowMissionComplete(false)
+
+    // Small delay for UX feel
+    await new Promise(r => setTimeout(r, 300))
+
+    const jsCode = transpileToJS(code, language)
+    const result = await execute(jsCode)
+
+    // Build console output
+    const output = [{ type: 'system', text: '⚙ Compiling your code...' }]
+
+    if (result.error) {
+      output.push({ type: 'error', text: `❌ Error: ${result.error.message}` })
+      if (result.error.line) {
+        output.push({ type: 'error', text: `   at line ${result.error.line}` })
+      }
+    }
+
+    // Show command summary
+    const commandTypes = result.commands.reduce((acc, cmd) => {
+      if (cmd.type !== 'log' && cmd.type !== 'error') {
+        acc[cmd.type] = (acc[cmd.type] || 0) + 1
+      }
+      return acc
+    }, {})
+
+    if (Object.keys(commandTypes).length > 0) {
+      output.push({ type: 'system', text: '⚡ Executing commands...' })
+      Object.entries(commandTypes).forEach(([type, count]) => {
+        output.push({ type: 'info', text: `  ▸ ${type} × ${count}` })
+      })
+    }
+
+    // Show console.log outputs
+    result.logs.forEach(log => {
+      output.push({ type: 'log', text: `> ${log}` })
+    })
+
+    setConsoleOutput(output)
+
+    // Play animation on game renderer
+    if (rendererRef.current && result.commands.length > 0) {
+      rendererRef.current.reset(mission.terrain)
+      setTimeout(() => {
+        rendererRef.current.playCommands(result.commands, result.finalState)
+      }, 100)
+    }
+
+    // Check mission success after animation completes
+    setTimeout(() => {
+      if (!result.error && mission.validateSuccess(result.finalState)) {
+        setMissionResult('success')
+        setShowMissionComplete(true)
+        setConsoleOutput(prev => [...prev, { type: 'success', text: mission.successMessage }])
+
+        if (!completedMissions.has(mission.id)) {
+          setScrap(prev => prev + mission.reward.scrap)
+          setCores(prev => prev + mission.reward.cores)
+          setCompletedMissions(prev => new Set([...prev, mission.id]))
+        }
+      } else if (result.error) {
+        setMissionResult('fail')
+        setConsoleOutput(prev => [...prev,
+          { type: 'hint', text: '💡 Tip: Check the error message above and fix your code!' }
+        ])
+      } else {
+        setConsoleOutput(prev => [...prev,
+          { type: 'info', text: '🔄 Mission objective not yet complete. Read the hints and try again!' }
+        ])
+      }
+      setIsRunning(false)
+    }, result.commands.length * 350 + 500)
+  }
+
+  // Reset to starter code
+  function handleReset() {
+    setCode(mission.starterCode[language])
+    setConsoleOutput([])
+    setMissionResult(null)
+    setHintIndex(-1)
+    setShowMissionComplete(false)
+    if (rendererRef.current) {
+      rendererRef.current.reset(mission.terrain)
+    }
+  }
+
+  // Show next hint
+  function handleShowHint() {
+    setHintIndex(prev => Math.min(prev + 1, mission.hints.length - 1))
+  }
+
+  const handleCommandsComplete = useCallback((finalState) => {
+    // This is called when the renderer finishes playing all commands
+  }, [])
 
   return (
     <div className="game-demo">
       <StarField />
 
-      {/* Top Bar */}
+      {/* ===== TOP BAR ===== */}
       <div className="game-demo__topbar">
-        <div className="game-demo__mission">
+        <div className="game-demo__mission-info">
           <Rocket size={16} className="game-demo__mission-icon" />
-          <span className="game-demo__mission-text">
-            Mission: Escape the Crater
-          </span>
+          <span className="game-demo__mission-title">{mission.icon} {mission.title}</span>
+          {mission.difficulty > 0 && (
+            <div className="game-demo__difficulty">
+              {Array.from({ length: mission.difficulty }, (_, i) => (
+                <Sparkles key={i} size={10} className="difficulty-star" />
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="game-demo__controls">
-          {/* Mode Switcher */}
-          <div className="mode-switcher">
-            {MODES.map(m => (
-              <button
-                key={m.id}
-                className={`mode-switcher__btn ${mode === m.id ? 'mode-switcher__btn--active' : ''}`}
-                onClick={() => setMode(m.id)}
-                title={`${m.label} (Ages ${m.ages})`}
-              >
-                <span className="mode-switcher__icon">{m.icon}</span>
-                <span className="mode-switcher__label">{m.label}</span>
-              </button>
+          {/* Concept Tags */}
+          <div className="game-demo__concepts">
+            {mission.concepts.map((c, i) => (
+              <span key={i} className="concept-tag">{c}</span>
             ))}
           </div>
 
@@ -338,120 +219,308 @@ export default function GameDemo() {
         </div>
       </div>
 
-      {/* Main Split Layout */}
+      {/* ===== MAIN LAYOUT ===== */}
       <div className="game-demo__main">
+
+        {/* Mission Sidebar */}
+        <AnimatePresence>
+          {missionSidebar && (
+            <motion.div
+              className="mission-sidebar"
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: 220, opacity: 1 }}
+              exit={{ width: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="mission-sidebar__header">
+                <Target size={14} />
+                <span>Missions</span>
+              </div>
+              <div className="mission-sidebar__list">
+                {missions.map((m, i) => (
+                  <button
+                    key={m.id}
+                    className={`mission-item ${currentMission === i ? 'mission-item--active' : ''} ${completedMissions.has(m.id) ? 'mission-item--complete' : ''}`}
+                    onClick={() => handleMissionChange(i)}
+                  >
+                    <span className="mission-item__icon">{m.icon}</span>
+                    <div className="mission-item__info">
+                      <span className="mission-item__title">{m.title}</span>
+                      {m.difficulty > 0 && (
+                        <span className="mission-item__diff">
+                          {'★'.repeat(m.difficulty)}{'☆'.repeat(4 - m.difficulty)}
+                        </span>
+                      )}
+                      {m.difficulty === 0 && (
+                        <span className="mission-item__diff free">Free Play</span>
+                      )}
+                    </div>
+                    {completedMissions.has(m.id) && (
+                      <CheckCircle size={14} className="mission-item__check" />
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              {/* Mission Brief */}
+              <div className="mission-sidebar__brief">
+                <p>{mission.description}</p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Sidebar Toggle */}
+        <button
+          className="sidebar-toggle"
+          onClick={() => setMissionSidebar(!missionSidebar)}
+          title={missionSidebar ? 'Hide missions' : 'Show missions'}
+        >
+          <ChevronRight size={14} style={{ transform: missionSidebar ? 'rotate(180deg)' : 'none' }} />
+        </button>
+
         {/* Left: Code Editor */}
         <div className="game-demo__editor-panel">
           <div className="editor-header">
-            <div className="lang-selector" onClick={() => setShowLangDropdown(!showLangDropdown)}>
-              <span className="lang-selector__icon">{langConfig.icon}</span>
-              <span className="lang-selector__label">{langConfig.label}</span>
-              <ChevronDown size={14} />
+            <div className="editor-header__left">
+              <div className="lang-selector" onClick={() => setShowLangDropdown(!showLangDropdown)}>
+                <span className="lang-selector__icon">{LANGUAGES[language].icon}</span>
+                <span className="lang-selector__label">{LANGUAGES[language].label}</span>
+                <ChevronDown size={14} />
 
-              <AnimatePresence>
-                {showLangDropdown && (
-                  <motion.div
-                    className="lang-dropdown"
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                  >
-                    {Object.entries(LANGUAGES).map(([key, val]) => (
-                      <button
-                        key={key}
-                        className={`lang-dropdown__item ${language === key ? 'lang-dropdown__item--active' : ''}`}
-                        onClick={(e) => { e.stopPropagation(); handleLanguageChange(key) }}
-                      >
-                        <span>{val.icon}</span>
-                        <span>{val.label}</span>
-                        <span className="lang-dropdown__faction">{val.faction}</span>
-                      </button>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                <AnimatePresence>
+                  {showLangDropdown && (
+                    <motion.div
+                      className="lang-dropdown"
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                    >
+                      {Object.entries(LANGUAGES).map(([key, val]) => (
+                        <button
+                          key={key}
+                          className={`lang-dropdown__item ${language === key ? 'lang-dropdown__item--active' : ''}`}
+                          onClick={(e) => { e.stopPropagation(); handleLanguageChange(key) }}
+                        >
+                          <span>{val.icon}</span>
+                          <span>{val.label}</span>
+                          <span className="lang-dropdown__faction">{val.faction}</span>
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+              <button
+                className="editor-btn editor-btn--ref"
+                onClick={() => setShowApiRef(!showApiRef)}
+                title="API Reference"
+              >
+                <BookOpen size={13} />
+                <span>API</span>
+              </button>
             </div>
 
             <div className="editor-header__actions">
               <button
+                className="editor-btn editor-btn--hint"
+                onClick={handleShowHint}
+                disabled={hintIndex >= mission.hints.length - 1}
+                title="Get a hint"
+              >
+                <Lightbulb size={14} />
+                <span>Hint</span>
+              </button>
+              <button
                 className="editor-btn editor-btn--run"
                 onClick={handleRun}
-                disabled={isRunning}
+                disabled={isRunning || !ready}
               >
                 <Play size={14} />
                 <span>{isRunning ? 'Running...' : 'Execute'}</span>
               </button>
-              <button className="editor-btn" onClick={handleReset}>
+              <button className="editor-btn" onClick={handleReset} title="Reset code">
                 <RotateCcw size={14} />
               </button>
             </div>
           </div>
 
-          <div className="editor-body">
-            {mode === 'blueprint' ? (
-              <BlueprintEditor language={language} />
-            ) : (
-              <Editor
-                height="100%"
-                language={monacoLang}
-                value={code}
-                onChange={(val) => setCode(val || '')}
-                theme="vs-dark"
-                options={{
-                  fontSize: 14,
-                  fontFamily: "'Fira Code', 'Courier New', monospace",
-                  minimap: { enabled: false },
-                  scrollBeyondLastLine: false,
-                  padding: { top: 16 },
-                  lineNumbers: mode === 'terminal' ? 'on' : 'off',
-                  glyphMargin: false,
-                  folding: mode === 'terminal',
-                  renderLineHighlight: 'gutter',
-                  overviewRulerBorder: false,
-                  automaticLayout: true,
-                }}
-              />
+          {/* API Reference Dropdown */}
+          <AnimatePresence>
+            {showApiRef && (
+              <motion.div
+                className="api-reference"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+              >
+                <div className="api-reference__content">
+                  <div className="api-ref-group">
+                    <h4>🤖 Movement</h4>
+                    <code>rover.moveForward(distance)</code>
+                    <code>rover.moveUp(distance)</code>
+                    <code>rover.moveDown(distance)</code>
+                    <code>rover.turnRight()</code>
+                  </div>
+                  <div className="api-ref-group">
+                    <h4>🚀 Actions</h4>
+                    <code>rover.thrust(power)</code>
+                    <code>rover.boost()</code>
+                    <code>rover.shoot()</code>
+                    <code>rover.collect()</code>
+                  </div>
+                  <div className="api-ref-group">
+                    <h4>📡 Info</h4>
+                    <code>rover.getX() / getY()</code>
+                    <code>rover.getScore()</code>
+                    <code>rover.sendSignal(msg)</code>
+                    <code>rover.setColor(hex)</code>
+                  </div>
+                </div>
+              </motion.div>
             )}
+          </AnimatePresence>
+
+          {/* Hints */}
+          <AnimatePresence>
+            {hintIndex >= 0 && (
+              <motion.div
+                className="hint-panel"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+              >
+                {mission.hints.slice(0, hintIndex + 1).map((hint, i) => (
+                  <div key={i} className="hint-panel__item">{hint}</div>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Monaco Editor */}
+          <div className="editor-body">
+            <Editor
+              height="100%"
+              language={language === 'cpp' ? 'cpp' : language}
+              value={code}
+              onChange={(val) => setCode(val || '')}
+              theme="vs-dark"
+              options={{
+                fontSize: 14,
+                fontFamily: "'Fira Code', 'Courier New', monospace",
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                padding: { top: 16 },
+                lineNumbers: 'on',
+                glyphMargin: false,
+                folding: true,
+                renderLineHighlight: 'gutter',
+                overviewRulerBorder: false,
+                automaticLayout: true,
+                tabSize: 2,
+                wordWrap: 'on',
+                suggest: {
+                  showKeywords: true,
+                  showSnippets: true,
+                },
+              }}
+            />
           </div>
 
           {/* Console Output */}
-          {consoleOutput.length > 0 && (
-            <motion.div
-              className="game-console"
-              initial={{ height: 0 }}
-              animate={{ height: 'auto' }}
-            >
-              <div className="game-console__header">
-                <Cpu size={12} />
-                <span>Console Output</span>
-              </div>
-              <div className="game-console__body">
-                {consoleOutput.map((line, i) => (
-                  <motion.div
-                    key={i}
-                    className="game-console__line"
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                  >
-                    {line}
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          )}
+          <div className={`game-console ${consoleOutput.length > 0 ? 'game-console--visible' : ''}`}>
+            <div className="game-console__header">
+              <Cpu size={12} />
+              <span>Console Output</span>
+              {consoleOutput.length > 0 && (
+                <button
+                  className="game-console__clear"
+                  onClick={() => setConsoleOutput([])}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+            <div className="game-console__body">
+              {consoleOutput.map((line, i) => (
+                <motion.div
+                  key={i}
+                  className={`game-console__line game-console__line--${line.type}`}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.03 }}
+                >
+                  {line.type === 'error' && <AlertCircle size={11} />}
+                  {line.type === 'success' && <CheckCircle size={11} />}
+                  {line.text}
+                </motion.div>
+              ))}
+              <div ref={consoleEndRef} />
+            </div>
+          </div>
         </div>
 
         {/* Right: Game Environment */}
         <div className="game-demo__game-panel">
           <div className="game-panel-header">
             <span>🌌 Space Environment</span>
-            <button className="game-panel-expand" title="Fullscreen (coming soon)">
-              <Maximize2 size={14} />
-            </button>
+            <span className="game-panel-header__terrain">{mission.terrain}</span>
           </div>
           <div className="game-canvas-wrapper">
-            <canvas ref={canvasRef} className="game-canvas" />
+            <GameRenderer
+              ref={rendererRef}
+              terrain={mission.terrain}
+              onCommandsComplete={handleCommandsComplete}
+            />
           </div>
+
+          {/* Mission Complete Overlay */}
+          <AnimatePresence>
+            {showMissionComplete && (
+              <motion.div
+                className="mission-complete-overlay"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <motion.div
+                  className="mission-complete-card"
+                  initial={{ scale: 0.5, y: 30 }}
+                  animate={{ scale: 1, y: 0 }}
+                  transition={{ type: 'spring', damping: 12 }}
+                >
+                  <div className="mission-complete__icon">🎉</div>
+                  <h3>Mission Complete!</h3>
+                  <p>{mission.successMessage}</p>
+                  <div className="mission-complete__rewards">
+                    <span className="reward-earn"><Gem size={16} /> +{mission.reward.scrap} Scrap</span>
+                    {mission.reward.cores > 0 && (
+                      <span className="reward-earn reward-earn--core"><Trophy size={16} /> +{mission.reward.cores} Core</span>
+                    )}
+                  </div>
+                  <div className="mission-complete__actions">
+                    {currentMission < missions.length - 1 && (
+                      <button
+                        className="btn-primary"
+                        onClick={() => {
+                          setShowMissionComplete(false)
+                          handleMissionChange(currentMission + 1)
+                        }}
+                      >
+                        Next Mission <ChevronRight size={16} />
+                      </button>
+                    )}
+                    <button
+                      className="btn-secondary"
+                      onClick={() => setShowMissionComplete(false)}
+                    >
+                      Keep Playing
+                    </button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Mentor Chat */}
           <div className={`game-demo__chat ${chatExpanded ? '' : 'game-demo__chat--collapsed'}`}>
@@ -473,57 +542,6 @@ export default function GameDemo() {
             )}
           </div>
         </div>
-      </div>
-    </div>
-  )
-}
-
-/* Blueprint Mode - Drag & Drop blocks */
-function BlueprintEditor({ language }) {
-  const blocks = language === 'python'
-    ? [
-      { text: '🔁 for i in range(5):', color: 'green', indent: 0 },
-      { text: '🤖 rover.move_forward()', color: 'blue', indent: 1 },
-      { text: '🚀 rover.thrust(power=i*2)', color: 'purple', indent: 1 },
-      { text: '❓ if rover.altitude > 10:', color: 'yellow', indent: 0 },
-      { text: '📡 rover.send_signal("ESCAPED!")', color: 'cyan', indent: 1 },
-    ]
-    : language === 'java'
-    ? [
-      { text: '🔁 for (int i = 0; i < 5; i++)', color: 'green', indent: 0 },
-      { text: '🤖 rover.moveForward()', color: 'blue', indent: 1 },
-      { text: '🚀 rover.thrust(i * 2)', color: 'purple', indent: 1 },
-      { text: '❓ if (rover.getAltitude() > 10)', color: 'yellow', indent: 0 },
-      { text: '📡 rover.sendSignal("ESCAPED!")', color: 'cyan', indent: 1 },
-    ]
-    : [
-      { text: '🔁 for (int i = 0; i < 5; i++)', color: 'green', indent: 0 },
-      { text: '🤖 rover.moveForward()', color: 'blue', indent: 1 },
-      { text: '🚀 rover.thrust(i * 2)', color: 'purple', indent: 1 },
-      { text: '❓ if (rover.getAltitude() > 10)', color: 'yellow', indent: 0 },
-      { text: '📡 rover.sendSignal("ESCAPED!")', color: 'cyan', indent: 1 },
-    ]
-
-  return (
-    <div className="blueprint-editor">
-      <p className="blueprint-editor__hint">
-        🧩 Blueprint Mode — Drag blocks to build your solution
-      </p>
-      <div className="blueprint-editor__blocks">
-        {blocks.map((block, i) => (
-          <motion.div
-            key={i}
-            className={`bp-block bp-block--${block.color}`}
-            style={{ marginLeft: block.indent * 32 }}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.1 }}
-            whileHover={{ scale: 1.02, x: 4 }}
-            draggable
-          >
-            {block.text}
-          </motion.div>
-        ))}
       </div>
     </div>
   )
