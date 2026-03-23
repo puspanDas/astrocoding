@@ -37,6 +37,7 @@ export default function GameDemo() {
   const [showMissionComplete, setShowMissionComplete] = useState(false)
   const [completedMissions, setCompletedMissions] = useState(new Set())
   const [showApiRef, setShowApiRef] = useState(false)
+  const [resetKey, setResetKey] = useState(0)
 
   const rendererRef = useRef(null)
   const consoleEndRef = useRef(null)
@@ -161,6 +162,7 @@ export default function GameDemo() {
   // Reset to starter code
   function handleReset() {
     setCode(mission.starterCode[language])
+    setResetKey(prev => prev + 1)
     setConsoleOutput([])
     setMissionResult(null)
     setHintIndex(-1)
@@ -401,8 +403,9 @@ export default function GameDemo() {
           <div className="editor-body">
             <Editor
               height="100%"
-              language={language === 'cpp' ? 'cpp' : language}
-              value={code}
+              key={`editor-${currentMission}-${language}-${resetKey}`}
+              defaultLanguage={language === 'cpp' ? 'cpp' : language}
+              defaultValue={code}
               onChange={(val) => setCode(val || '')}
               theme="vs-dark"
               options={{

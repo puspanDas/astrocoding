@@ -290,8 +290,9 @@ ${pythonCode}
           <div className="editor-body">
             <Editor
               height="100%"
-              language={getLanguage()}
-              value={getActiveCode()}
+              key={activeTab}
+              defaultLanguage={getLanguage()}
+              defaultValue={getActiveCode()}
               theme="vs-dark"
               onChange={handleEditorChange}
               options={{
