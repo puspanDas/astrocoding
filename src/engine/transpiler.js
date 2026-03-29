@@ -19,7 +19,7 @@ export function transpileToJS(code, language) {
     // Match: public static void main(String[] args) {
     js = js.replace(/public\s+static\s+\w+\s+\w+\s*\(.*?\)\s*\{/g, '')
     // Match: bool function(Rover& rover) {
-    js = js.replace(/(bool|int|void|boolean)\s+\w+\s*\(.*?\)\s*\{/g, 'function() {')
+    js = js.replace(/(bool|int|void|boolean)\s+\w+\s*\(.*?\)\s*\{/g, 'function executeMission() {')
 
     // 3. Replace static types with 'let'
     js = js.replace(/\bint\b/g, 'let')
