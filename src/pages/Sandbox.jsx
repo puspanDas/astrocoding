@@ -75,15 +75,16 @@ SELECT * FROM users;`)
       <html>
       <head>
         <meta charset="UTF-8">
-        <script defer src="https://pyscript.net/alpha/pyscript.js"></script>
+        <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
+        <script defer src="https://pyscript.net/latest/pyscript.js"></script>
         <style>
           body { background: #111; color: #fff; padding: 20px; font-family: monospace; }
         </style>
       </head>
       <body>
-        <py-script>
+        <script type="py">
 ${pythonCode}
-        </py-script>
+        </script>
       </body>
       </html>
       `
@@ -317,7 +318,7 @@ ${pythonCode}
             <iframe
               title="sandbox-preview"
               srcDoc={srcDoc}
-              sandbox="allow-scripts"
+              sandbox="allow-scripts allow-same-origin"
               className="sandbox-iframe"
             />
           </div>
