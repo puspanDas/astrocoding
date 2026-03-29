@@ -6,6 +6,8 @@ import tempfile
 import os
 import sys
 
+import ai_rag_service
+
 PORT = 8000
 
 class CodeExecutionHandler(http.server.SimpleHTTPRequestHandler):
@@ -20,7 +22,38 @@ class CodeExecutionHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
 
     def do_POST(self):
-        if self.path == '/execute':
+        if self.path == '/api/agent/index':
+            try:
+                res = ai_rag_service.index_codebase()
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps(res).encode('utf-8'))
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+                
+        elif self.path == '/api/agent/chat':
+            try:
+                content_length = int(self.headers['Content-Length'])
+                post_data = self.rfile.read(content_length)
+                data = json.loads(post_data.decode('utf-8'))
+                query = data.get('question', '')
+                
+                res = ai_rag_service.query_assistant(query)
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps(res).encode('utf-8'))
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+                
+        elif self.path == '/execute':
             try:
                 content_length = int(self.headers['Content-Length'])
                 post_data = self.rfile.read(content_length)

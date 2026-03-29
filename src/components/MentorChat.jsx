@@ -3,15 +3,22 @@ import { Bot, Send, Sparkles } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import './MentorChat.css'
 
-const HINT_RESPONSES = [
-  { trigger: 'help', response: "🤖 Beep-boop! Try breaking the problem into smaller steps. What does your rover need to do first?" },
-  { trigger: 'stuck', response: "🔧 No worries, Commander! Look at the mission objective again. You need a loop to repeat the movement." },
-  { trigger: 'loop', response: "💡 A `for` loop repeats code a set number of times. Try: `for i in range(5): rover.move()` to move 5 times!" },
-  { trigger: 'error', response: "🔍 Errors are just clues! Check line numbers — usually it's a missing colon `:` or wrong indentation." },
-  { trigger: 'variable', response: "📦 Variables store data! Think of them as labeled boxes. `speed = 10` creates a box called 'speed' with 10 inside." },
-  { trigger: 'function', response: "⚙️ Functions are reusable code recipes! Define with `def my_function():` and call with `my_function()`." },
-  { trigger: 'default', response: "🚀 I'm your Mentor Droid! Ask me about loops, variables, functions, or type 'help' if you're stuck!" },
-]
+function formatText(text) {
+  if (typeof text !== 'string') return text;
+  // Simplistic markdown formatter for bold and code blocks
+  const parts = text.split(/(```[\s\S]*?```|\*\*.*?\*\*|`.*?`)/);
+  
+  return parts.map((part, i) => {
+    if (part.startsWith('```') && part.endsWith('```')) {
+      return <pre key={i} className="mentor-chat__pre"><code>{part.slice(3, -3).replace(/^[\w]+\n/, '')}</code></pre>;
+    } else if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i}>{part.slice(2, -2)}</strong>;
+    } else if (part.startsWith('`') && part.endsWith('`')) {
+      return <code key={i} className="mentor-chat__code">{part.slice(1, -1)}</code>;
+    }
+    return <span key={i} dangerouslySetInnerHTML={{ __html: part.replace(/\n/g, '<br/>') }} />;
+  });
+}
 
 export default function MentorChat() {
   const [messages, setMessages] = useState([
@@ -25,25 +32,31 @@ export default function MentorChat() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  function getResponse(text) {
-    const lower = text.toLowerCase()
-    for (const hint of HINT_RESPONSES) {
-      if (lower.includes(hint.trigger)) return hint.response
+  async function getResponse(text) {
+    try {
+      const res = await fetch('http://localhost:8000/api/agent/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: text })
+      });
+      if (!res.ok) throw new Error('Server returned HTTP ' + res.status);
+      const data = await res.json();
+      return data.explanation || "No response generated.";
+    } catch (err) {
+      return `❌ **Error connecting to AI Backend:** Make sure \`backend.py\` is running on port 8000.\n\n_Details: ${err.message}_`;
     }
-    return HINT_RESPONSES[HINT_RESPONSES.length - 1].response
   }
 
-  function handleSend() {
+  async function handleSend() {
     if (!input.trim()) return
     const userMsg = input.trim()
     setInput('')
     setMessages(prev => [...prev, { role: 'user', text: userMsg }])
     setIsTyping(true)
 
-    setTimeout(() => {
-      setIsTyping(false)
-      setMessages(prev => [...prev, { role: 'droid', text: getResponse(userMsg) }])
-    }, 800 + Math.random() * 600)
+    const reply = await getResponse(userMsg)
+    setIsTyping(false)
+    setMessages(prev => [...prev, { role: 'droid', text: reply }])
   }
 
   function handleKeyDown(e) {
@@ -73,7 +86,7 @@ export default function MentorChat() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ duration: 0.3 }}
             >
-              {msg.text}
+              {formatText(msg.text)}
             </motion.div>
           ))}
         </AnimatePresence>

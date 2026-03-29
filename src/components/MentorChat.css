@@ -72,6 +72,26 @@
   border-bottom-right-radius: 4px;
 }
 
+.mentor-chat__pre {
+  background: rgba(0, 0, 0, 0.4);
+  padding: 8px;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  margin: 8px 0;
+  border: 1px solid var(--glass-border);
+}
+
+.mentor-chat__code {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: #a78bfa;
+}
+
 .mentor-chat__typing {
   display: flex;
   gap: 4px;
