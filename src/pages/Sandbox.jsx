@@ -82,7 +82,7 @@ SELECT * FROM users;`)
         </style>
       </head>
       <body>
-        <script type="py">
+        <script type="py" terminal>
 ${pythonCode}
         </script>
       </body>
