@@ -75,15 +75,39 @@ SELECT * FROM users;`)
       <html>
       <head>
         <meta charset="UTF-8">
-        <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
-        <script defer src="https://pyscript.net/latest/pyscript.js"></script>
         <style>
-          body { background: #111; color: #fff; padding: 20px; font-family: monospace; }
+          body { background: #111; color: #fff; padding: 16px 20px; font-family: 'Fira Code', monospace; white-space: pre-wrap; font-size: 14px; margin: 0; }
+          .system { color: #a855f7; font-style: italic; }
+          .error { color: #ef4444; }
         </style>
       </head>
       <body>
-        <script type="py" terminal>
-${pythonCode}
+        <div id="output"><span class="system">Initializing local Python engine...</span></div>
+        <textarea id="userCode" style="display: none;">${pythonCode.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+        <script>
+          async function executeCode() {
+            const code = document.getElementById('userCode').value;
+            const outputEl = document.getElementById('output');
+            outputEl.innerHTML = '<span class="system">Executing on local Python backend (port: 8000)...</span>';
+            
+            try {
+              const res = await fetch('http://localhost:8000/execute', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: code })
+              });
+              
+              if (!res.ok) {
+                 const errData = await res.json();
+                 throw new Error(errData.error || 'Server returned HTTP ' + res.status);
+              }
+              const data = await res.json();
+              outputEl.textContent = data.output || '✨ Program executed successfully (no output).';
+            } catch (err) {
+              outputEl.innerHTML = '<span class="error">❌ Backend Connection Failed.\\nPlease ensure backend.py is running on port 8000. Try restarting the app via run_app.py.\\n\\nError: ' + err.message + '</span>';
+            }
+          }
+          executeCode();
         </script>
       </body>
       </html>
