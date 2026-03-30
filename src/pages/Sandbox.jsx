@@ -73,12 +73,30 @@ SELECT * FROM users;`)
   const [isFixing, setIsFixing] = useState(false)
   const [lastError, setLastError] = useState(null)
 
+  // Console State
+  const [consoleLogs, setConsoleLogs] = useState([])
+  const consoleEndRef = useRef(null)
+
+  // Auto-scroll console to bottom
+  useEffect(() => {
+    if (consoleEndRef.current) {
+      consoleEndRef.current.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [consoleLogs])
+
   // Listen for error messages from the preview iframe
   useEffect(() => {
     function handleMessage(event) {
       if (event.data && event.data.type === 'sandbox-error') {
         setLastError(event.data.error)
         requestAiFix(getActiveCode(), getLanguage(), event.data.error)
+      } else if (event.data && event.data.type === 'sandbox-log') {
+        setConsoleLogs(prev => [...prev, {
+          id: Date.now() + Math.random(),
+          level: event.data.level,
+          content: event.data.content,
+          timestamp: new Date().toLocaleTimeString()
+        }])
       }
     }
     window.addEventListener('message', handleMessage)
@@ -171,12 +189,17 @@ SELECT * FROM users;`)
               if (output.includes('Traceback') || output.includes('Error:') || output.includes('SyntaxError')) {
                 outputEl.innerHTML = '<span class="error">' + output.replace(/</g, '&lt;') + '</span>';
                 window.parent.postMessage({ type: 'sandbox-error', error: output }, '*');
+                window.parent.postMessage({ type: 'sandbox-log', level: 'error', content: output }, '*');
               } else {
                 outputEl.textContent = output || '✨ Program executed successfully (no output).';
+                if (output) {
+                  window.parent.postMessage({ type: 'sandbox-log', level: 'log', content: output }, '*');
+                }
               }
             } catch (err) {
               outputEl.innerHTML = '<span class="error">❌ Backend Connection Failed.\\nError: ' + err.message + '</span>';
               window.parent.postMessage({ type: 'sandbox-error', error: err.message }, '*');
+              window.parent.postMessage({ type: 'sandbox-log', level: 'error', content: 'Backend Connection Failed: ' + err.message }, '*');
             }
           }
           executeCode();
@@ -214,6 +237,7 @@ SELECT * FROM users;`)
               
               if (res.length === 0) {
                  document.getElementById('output').innerHTML = 'Query executed successfully (no results).';
+                 window.parent.postMessage({ type: 'sandbox-log', level: 'info', content: 'Query executed successfully (no results).' }, '*');
                  return;
               }
               
@@ -231,9 +255,17 @@ SELECT * FROM users;`)
               });
               
               document.getElementById('output').innerHTML = html;
+              // Also send a simplified text version to the console
+              res.forEach(result => {
+                const header = result.columns.join(' | ');
+                const separator = '-'.repeat(header.length);
+                const rows = result.values.map(r => r.join(' | ')).join('\\n');
+                window.parent.postMessage({ type: 'sandbox-log', level: 'log', content: header + '\\n' + separator + '\\n' + rows }, '*');
+              });
             } catch (err) {
               document.getElementById('output').innerHTML = '<div class="error">' + err.message + '</div>';
               window.parent.postMessage({ type: 'sandbox-error', error: err.message }, '*');
+              window.parent.postMessage({ type: 'sandbox-log', level: 'error', content: err.message }, '*');
             }
           }
           initSql();
@@ -266,14 +298,50 @@ SELECT * FROM users;`)
         <body>
           ${htmlCode}
           <script>
+            // Console Bridge
+            (function() {
+              const originalLog = console.log;
+              const originalError = console.error;
+              const originalWarn = console.warn;
+              const originalInfo = console.info;
+
+              const sendMessage = (type, args) => {
+                try {
+                  const content = Array.from(args).map(arg => {
+                    if (arg instanceof Error) return arg.toString();
+                    if (typeof arg === 'object' && arg !== null) {
+                      try {
+                        return JSON.stringify(arg, null, 2);
+                      } catch (e) {
+                        return Object.prototype.toString.call(arg);
+                      }
+                    }
+                    return String(arg);
+                  }).join(' ');
+
+                  window.parent.postMessage({
+                    type: 'sandbox-log',
+                    level: type,
+                    content: content
+                  }, '*');
+                } catch(e) {}
+              };
+
+              console.log = function() { sendMessage('log', arguments); originalLog.apply(console, arguments); };
+              console.error = function() { sendMessage('error', arguments); originalError.apply(console, arguments); };
+              console.warn = function() { sendMessage('warn', arguments); originalWarn.apply(console, arguments); };
+              console.info = function() { sendMessage('info', arguments); originalInfo.apply(console, arguments); };
+            })();
+
             window.onerror = function(msg, url, line) {
               window.parent.postMessage({ type: 'sandbox-error', error: msg + ' (line ' + line + ')' }, '*');
+              console.error(msg + ' (line ' + line + ')');
             };
             try {
               ${jsCode}
             } catch (err) {
-              console.error("Sandbox Error:", err);
               window.parent.postMessage({ type: 'sandbox-error', error: err.toString() }, '*');
+              console.error(err);
             }
           </script>
         </body>
@@ -285,6 +353,7 @@ SELECT * FROM users;`)
 
   // Initial compile
   useEffect(() => {
+    setConsoleLogs([]) // Clear logs on language switch
     compileCode()
     setAiFixResult(null)
     setLastError(null)
@@ -491,7 +560,7 @@ SELECT * FROM users;`)
           </AnimatePresence>
         </div>
 
-        {/* Preview Panel */}
+        {/* Preview and Console Panel */}
         <div className="sandbox-demo__preview-panel">
           <div className="preview-header">
             <span>Live Output</span>
@@ -503,6 +572,34 @@ SELECT * FROM users;`)
               sandbox="allow-scripts allow-same-origin"
               className="sandbox-iframe"
             />
+          </div>
+          
+          {/* Integrated Console */}
+          <div className="sandbox-console">
+            <div className="sandbox-console__header">
+              <span><Terminal size={14} /> Console</span>
+              {consoleLogs.length > 0 && (
+                <button 
+                  className="sandbox-console__clear"
+                  onClick={() => setConsoleLogs([])}
+                >
+                  Clear Logs
+                </button>
+              )}
+            </div>
+            <div className="sandbox-console__body">
+              {consoleLogs.length === 0 ? (
+                <div className="sandbox-console__empty">No logs to display. Output from your code will appear here.</div>
+              ) : (
+                consoleLogs.map((log) => (
+                  <div key={log.id} className={`sandbox-console__log sandbox-console__log--${log.level}`}>
+                    <div className="sandbox-console__log-time">{log.timestamp}</div>
+                    <div className="sandbox-console__log-content">{log.content}</div>
+                  </div>
+                ))
+              )}
+              <div ref={consoleEndRef} />
+            </div>
           </div>
         </div>
       </div>
