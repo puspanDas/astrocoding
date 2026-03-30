@@ -153,6 +153,113 @@ pythonGenerator.forBlock['rover_set_color'] = function(block) {
   return 'rover.set_color("' + block.getFieldValue('COLOR') + '")\n';
 };
 
+// ==========================================
+// User Input & Easy Variables
+// ==========================================
+Blockly.Blocks['user_prompt'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("Ask User:")
+        .appendField(new Blockly.FieldTextInput("Enter value:"), "MSG");
+    this.setOutput(true, null);
+    this.setColour(160);
+    this.setTooltip("Prompt for user input via a dialog");
+  }
+};
+
+javascriptGenerator.forBlock['user_prompt'] = function(block) {
+  var msg = block.getFieldValue('MSG');
+  return ['window.prompt("' + msg + '")', javascriptGenerator.ORDER_FUNCTION_CALL];
+};
+
+pythonGenerator.forBlock['user_prompt'] = function(block) {
+  var msg = block.getFieldValue('MSG');
+  return ['input("' + msg + '\\n")', pythonGenerator.ORDER_FUNCTION_CALL];
+};
+
+Blockly.Blocks['easy_set_variable_number'] = {
+  init: function() {
+    this.appendDummyInput()
+        .appendField("Set")
+        .appendField(new Blockly.FieldVariable("item"), "VAR")
+        .appendField("to Number")
+        .appendField(new Blockly.FieldNumber(0), "VALUE");
+    this.setPreviousStatement(true, null);
+    this.setNextStatement(true, null);
+    this.setColour(330);
+    this.setTooltip("Quickly set a variable to a number without connecting blocks.");
+  }
+};
+
+javascriptGenerator.forBlock['easy_set_variable_number'] = function(block) {
+  var varName = javascriptGenerator.nameDB_.getName(block.getFieldValue('VAR'), Blockly.VARIABLE_CATEGORY_NAME);
+  return varName + ' = ' + block.getFieldValue('VALUE') + ';\n';
+};
+
+pythonGenerator.forBlock['easy_set_variable_number'] = function(block) {
+  var varName = pythonGenerator.nameDB_.getName(block.getFieldValue('VAR'), Blockly.VARIABLE_CATEGORY_NAME);
+  return varName + ' = ' + block.getFieldValue('VALUE') + '\n';
+};
+
+// ==========================================
+// Physics Blocks
+// ==========================================
+Blockly.Blocks['physics_speed'] = {
+  init: function() {
+    this.appendValueInput("DISTANCE")
+        .setCheck("Number")
+        .appendField("Physics: Speed (Dist");
+    this.appendValueInput("TIME")
+        .setCheck("Number")
+        .appendField("/ Time)");
+    this.setInputsInline(true);
+    this.setOutput(true, "Number");
+    this.setColour(200);
+    this.setTooltip("Calculate speed (Distance ÷ Time)");
+  }
+};
+
+javascriptGenerator.forBlock['physics_speed'] = function(block, generator) {
+  var dist = generator.valueToCode(block, 'DISTANCE', javascriptGenerator.ORDER_DIVISION) || '0';
+  var time = generator.valueToCode(block, 'TIME', javascriptGenerator.ORDER_DIVISION) || '1';
+  return ['(' + dist + ' / ' + time + ')', javascriptGenerator.ORDER_DIVISION];
+};
+
+pythonGenerator.forBlock['physics_speed'] = function(block, generator) {
+  var dist = generator.valueToCode(block, 'DISTANCE', pythonGenerator.ORDER_MULTIPLICATIVE) || '0';
+  var time = generator.valueToCode(block, 'TIME', pythonGenerator.ORDER_MULTIPLICATIVE) || '1';
+  return ['(' + dist + ' / ' + time + ')', pythonGenerator.ORDER_MULTIPLICATIVE];
+};
+
+Blockly.Blocks['physics_force'] = {
+  init: function() {
+    this.appendValueInput("MASS")
+        .setCheck("Number")
+        .appendField("Physics: Force (Mass");
+    this.appendValueInput("ACCELERATION")
+        .setCheck("Number")
+        .appendField("* Accel)");
+    this.setInputsInline(true);
+    this.setOutput(true, "Number");
+    this.setColour(200);
+    this.setTooltip("Calculate force (Mass × Acceleration)");
+  }
+};
+
+javascriptGenerator.forBlock['physics_force'] = function(block, generator) {
+  var mass = generator.valueToCode(block, 'MASS', javascriptGenerator.ORDER_MULTIPLICATION) || '0';
+  var acc = generator.valueToCode(block, 'ACCELERATION', javascriptGenerator.ORDER_MULTIPLICATION) || '0';
+  return ['(' + mass + ' * ' + acc + ')', javascriptGenerator.ORDER_MULTIPLICATION];
+};
+
+pythonGenerator.forBlock['physics_force'] = function(block, generator) {
+  var mass = generator.valueToCode(block, 'MASS', pythonGenerator.ORDER_MULTIPLICATIVE) || '0';
+  var acc = generator.valueToCode(block, 'ACCELERATION', pythonGenerator.ORDER_MULTIPLICATIVE) || '0';
+  return ['(' + mass + ' * ' + acc + ')', pythonGenerator.ORDER_MULTIPLICATIVE];
+};
+
+
+
 
 // Game Toolbox
 export const gameToolbox = {
@@ -217,6 +324,24 @@ export const gameToolbox = {
           { kind: 'block', type: 'math_number' },
           { kind: 'block', type: 'math_arithmetic' },
        ]
+    },
+    {
+       kind: 'category',
+       name: 'Physics',
+       colour: 200,
+       contents: [
+          { kind: 'block', type: 'physics_speed' },
+          { kind: 'block', type: 'physics_force' },
+       ]
+    },
+    {
+       kind: 'category',
+       name: 'Input & Vars',
+       colour: 330,
+       contents: [
+          { kind: 'block', type: 'user_prompt' },
+          { kind: 'block', type: 'easy_set_variable_number' },
+       ]
     }
   ]
 };
@@ -257,11 +382,20 @@ export const sandboxToolbox = {
     },
     {
        kind: 'category',
-       name: 'Text',
+       name: 'Text & Input',
        colour: '%{BKY_TEXTS_HUE}',
        contents: [
           { kind: 'block', type: 'text' },
           { kind: 'block', type: 'text_print' },
+          { kind: 'block', type: 'user_prompt' },
+       ]
+    },
+    {
+       kind: 'category',
+       name: 'Easy Vars',
+       colour: 330,
+       contents: [
+          { kind: 'block', type: 'easy_set_variable_number' },
        ]
     },
     {
@@ -269,6 +403,15 @@ export const sandboxToolbox = {
        name: 'Variables',
        colour: '%{BKY_VARIABLES_HUE}',
        custom: 'VARIABLE'
+    },
+    {
+       kind: 'category',
+       name: 'Physics',
+       colour: 200,
+       contents: [
+          { kind: 'block', type: 'physics_speed' },
+          { kind: 'block', type: 'physics_force' },
+       ]
     },
     {
        kind: 'category',
