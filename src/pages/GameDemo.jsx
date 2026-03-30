@@ -4,11 +4,13 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Play, RotateCcw, Rocket, Cpu, Trophy, Gem, BookOpen,
   ChevronDown, ChevronRight, Maximize2, Minimize2,
-  Lightbulb, CheckCircle, AlertCircle, Sparkles, Target
+  Lightbulb, CheckCircle, AlertCircle, Sparkles, Target, Blocks
 } from 'lucide-react'
 import MentorChat from '../components/MentorChat'
 import AIAssistant from '../components/AIAssistant'
 import StarField from '../components/StarField'
+import BlocklyEditor from '../components/BlocklyEditor'
+import { gameToolbox } from '../engine/blocks'
 import GameRenderer from '../engine/GameRenderer'
 import useCodeSandbox from '../engine/CodeSandbox'
 import missions from '../engine/missions'
@@ -26,6 +28,8 @@ export default function GameDemo() {
   const [currentMission, setCurrentMission] = useState(0)
   const [language, setLanguage] = useState('javascript')
   const [showLangDropdown, setShowLangDropdown] = useState(false)
+  const [codingMode, setCodingMode] = useState('text') // 'text' | 'blocks'
+  const [blockCode, setBlockCode] = useState('')
   const [code, setCode] = useState(missions[0].starterCode.javascript)
   const [isRunning, setIsRunning] = useState(false)
   const [consoleOutput, setConsoleOutput] = useState([])
@@ -91,7 +95,8 @@ export default function GameDemo() {
     // Small delay for UX feel
     await new Promise(r => setTimeout(r, 300))
 
-    const jsCode = transpileToJS(code, language)
+    const codeToRun = codingMode === 'blocks' ? blockCode : code;
+    const jsCode = transpileToJS(codeToRun, language)
     const result = await execute(jsCode)
 
     // Build console output
@@ -322,6 +327,15 @@ export default function GameDemo() {
                 <BookOpen size={13} />
                 <span>API</span>
               </button>
+              <button
+                className={`editor-btn ${codingMode === 'blocks' ? 'active' : ''}`}
+                onClick={() => setCodingMode(codingMode === 'blocks' ? 'text' : 'blocks')}
+                title="Toggle Block Coding"
+                style={{ marginLeft: '8px', background: codingMode === 'blocks' ? 'rgba(168, 85, 247, 0.2)' : 'transparent' }}
+              >
+                <Blocks size={13} />
+                <span style={{ color: codingMode === 'blocks' ? '#a855f7' : '' }}>Blocks Mode</span>
+              </button>
             </div>
 
             <div className="editor-header__actions">
@@ -400,35 +414,43 @@ export default function GameDemo() {
             )}
           </AnimatePresence>
 
-          {/* Monaco Editor */}
+          {/* Editor Body */}
           <div className="editor-body">
-            <Editor
-              height="100%"
-              key={`editor-${currentMission}-${language}-${resetKey}`}
-              defaultLanguage={language === 'cpp' ? 'cpp' : language}
-              defaultValue={code}
-              onChange={(val) => setCode(val || '')}
-              theme="vs-dark"
-              options={{
-                fontSize: 14,
-                fontFamily: "'Fira Code', 'Courier New', monospace",
-                minimap: { enabled: false },
-                scrollBeyondLastLine: false,
-                padding: { top: 16 },
-                lineNumbers: 'on',
-                glyphMargin: false,
-                folding: true,
-                renderLineHighlight: 'gutter',
-                overviewRulerBorder: false,
-                automaticLayout: true,
-                tabSize: 2,
-                wordWrap: 'on',
-                suggest: {
-                  showKeywords: true,
-                  showSnippets: true,
-                },
-              }}
-            />
+            {codingMode === 'blocks' ? (
+              <BlocklyEditor
+                toolbox={gameToolbox}
+                language={language}
+                onChange={setBlockCode}
+              />
+            ) : (
+              <Editor
+                height="100%"
+                key={`editor-${currentMission}-${language}-${resetKey}`}
+                defaultLanguage={language === 'cpp' ? 'cpp' : language}
+                defaultValue={code}
+                onChange={(val) => setCode(val || '')}
+                theme="vs-dark"
+                options={{
+                  fontSize: 14,
+                  fontFamily: "'Fira Code', 'Courier New', monospace",
+                  minimap: { enabled: false },
+                  scrollBeyondLastLine: false,
+                  padding: { top: 16 },
+                  lineNumbers: 'on',
+                  glyphMargin: false,
+                  folding: true,
+                  renderLineHighlight: 'gutter',
+                  overviewRulerBorder: false,
+                  automaticLayout: true,
+                  tabSize: 2,
+                  wordWrap: 'on',
+                  suggest: {
+                    showKeywords: true,
+                    showSnippets: true,
+                  },
+                }}
+              />
+            )}
           </div>
 
           {/* Console Output */}

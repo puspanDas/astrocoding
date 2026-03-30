@@ -1,13 +1,17 @@
 import { useState, useEffect, useRef } from 'react'
 import Editor from '@monaco-editor/react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Play, Code, Layout, LayoutTemplate, Terminal, Wand2, Check, X, AlertTriangle, Sparkles, Copy } from 'lucide-react'
+import { Play, Code, Layout, LayoutTemplate, Terminal, Wand2, Check, X, AlertTriangle, Sparkles, Copy, Blocks } from 'lucide-react'
 import StarField from '../components/StarField'
 import AIAssistant from '../components/AIAssistant'
+import BlocklyEditor from '../components/BlocklyEditor'
+import { sandboxToolbox } from '../engine/blocks'
 import './Sandbox.css'
 
 export default function Sandbox() {
   const [activeTab, setActiveTab] = useState('html')
+  const [codingMode, setCodingMode] = useState('text') // 'text' | 'blocks'
+  const [blockCode, setBlockCode] = useState('')
   const editorRef = useRef(null)
   
   const [htmlCode, setHtmlCode] = useState('<div class="box">\n  <h1>Hello AstroCode!</h1>\n  <p>Build your own cosmic creations.</p>\n  <button onclick="changeColor()">Activate Sensors</button>\n</div>')
@@ -379,6 +383,7 @@ SELECT * FROM users;`)
   }
 
   const getActiveCode = () => {
+    if (codingMode === 'blocks') return blockCode
     if (activeTab === 'html') return htmlCode
     if (activeTab === 'css') return cssCode
     if (activeTab === 'js') return jsCode
@@ -485,27 +490,52 @@ SELECT * FROM users;`)
             >
               <Layout size={14} /> SQL
             </button>
+
+            <div style={{ flex: 1 }}></div>
+            <button
+              className={`editor-tab ${codingMode === 'blocks' ? 'active' : ''}`}
+              onClick={() => setCodingMode(codingMode === 'blocks' ? 'text' : 'blocks')}
+              style={{ background: codingMode === 'blocks' ? 'rgba(168, 85, 247, 0.2)' : 'transparent', color: codingMode === 'blocks' ? '#a855f7' : '#9ca3af' }}
+              title="Toggle Blocks Mode"
+            >
+              <Blocks size={14} /> Blocks
+            </button>
           </div>
           
           <div className="editor-body">
-            <Editor
-              height="100%"
-              key={activeTab + '-' + (aiFixResult?.fixed_code ? 'fixed' : 'original')}
-              defaultLanguage={getLanguage()}
-              defaultValue={getActiveCode()}
-              theme="vs-dark"
-              onChange={handleEditorChange}
-              onMount={(editor) => { editorRef.current = editor }}
-              options={{
-                fontSize: 14,
-                fontFamily: "'Fira Code', 'Courier New', monospace",
-                minimap: { enabled: false },
-                scrollBeyondLastLine: false,
-                padding: { top: 16 },
-                wordWrap: 'on',
-                formatOnPaste: true,
-              }}
-            />
+            {codingMode === 'blocks' ? (
+              <BlocklyEditor
+                toolbox={sandboxToolbox}
+                language={getLanguage() === 'python' ? 'python' : 'javascript'}
+                onChange={(code) => {
+                  setBlockCode(code)
+                  if (activeTab === 'html') setHtmlCode(code)
+                  else if (activeTab === 'css') setCssCode(code)
+                  else if (activeTab === 'js') setJsCode(code)
+                  else if (activeTab === 'python') setPythonCode(code)
+                  else if (activeTab === 'sql') setSqlCode(code)
+                }}
+              />
+            ) : (
+              <Editor
+                height="100%"
+                key={activeTab + '-' + (aiFixResult?.fixed_code ? 'fixed' : 'original')}
+                defaultLanguage={getLanguage()}
+                defaultValue={getActiveCode()}
+                theme="vs-dark"
+                onChange={handleEditorChange}
+                onMount={(editor) => { editorRef.current = editor }}
+                options={{
+                  fontSize: 14,
+                  fontFamily: "'Fira Code', 'Courier New', monospace",
+                  minimap: { enabled: false },
+                  scrollBeyondLastLine: false,
+                  padding: { top: 16 },
+                  wordWrap: 'on',
+                  formatOnPaste: true,
+                }}
+              />
+            )}
           </div>
 
           {/* AI Fix Suggestion Panel */}
