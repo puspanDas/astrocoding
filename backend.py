@@ -53,6 +53,26 @@ class CodeExecutionHandler(http.server.SimpleHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
                 
+        elif self.path == '/api/agent/fix':
+            try:
+                content_length = int(self.headers['Content-Length'])
+                post_data = self.rfile.read(content_length)
+                data = json.loads(post_data.decode('utf-8'))
+                code = data.get('code', '')
+                language = data.get('language', 'python')
+                error_msg = data.get('error', '')
+                
+                res = ai_rag_service.fix_code(code, language, error_msg)
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps(res).encode('utf-8'))
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+                
         elif self.path == '/execute':
             try:
                 content_length = int(self.headers['Content-Length'])

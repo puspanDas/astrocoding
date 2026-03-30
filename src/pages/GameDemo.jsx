@@ -7,6 +7,7 @@ import {
   Lightbulb, CheckCircle, AlertCircle, Sparkles, Target
 } from 'lucide-react'
 import MentorChat from '../components/MentorChat'
+import AIAssistant from '../components/AIAssistant'
 import StarField from '../components/StarField'
 import GameRenderer from '../engine/GameRenderer'
 import useCodeSandbox from '../engine/CodeSandbox'
@@ -546,6 +547,7 @@ export default function GameDemo() {
           </div>
         </div>
       </div>
+      <AIAssistant />
     </div>
   )
 }
