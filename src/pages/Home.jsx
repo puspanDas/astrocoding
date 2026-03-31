@@ -261,6 +261,10 @@ export default function Home() {
 
 /* ======= Inline Engine Demo Component ======= */
 function EngineDemo() {
+  const navigate = React.useCallback((path) => {
+    window.location.href = path
+  }, [])
+
   const modes = [
     {
       id: 'blueprint',
@@ -348,6 +352,14 @@ function EngineDemo() {
         >
           {current.code}
           <p className="engine-demo__desc">{current.desc}</p>
+          <Link
+            to={`/play?mode=${current.id}`}
+            className="engine-demo__try-btn"
+            style={{ '--mode-color': current.color }}
+          >
+            <span>Try {current.label} Mode</span>
+            <ChevronRight size={16} />
+          </Link>
         </motion.div>
       </div>
     </motion.div>

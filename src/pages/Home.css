@@ -212,6 +212,34 @@
   border-top: 1px solid var(--glass-border);
 }
 
+.engine-demo__try-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  margin-top: 16px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: white;
+  background: linear-gradient(135deg, var(--mode-color), color-mix(in srgb, var(--mode-color) 70%, var(--nebula-purple)));
+  transition: var(--transition-base);
+  align-self: center;
+  text-decoration: none;
+  box-shadow: 0 4px 15px color-mix(in srgb, var(--mode-color) 30%, transparent);
+}
+
+.engine-demo__try-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px color-mix(in srgb, var(--mode-color) 40%, transparent);
+  filter: brightness(1.1);
+}
+
+.engine-demo__try-btn span {
+  position: relative;
+  z-index: 1;
+}
+
 /* Code blocks for Blueprint mode */
 .engine-demo__blocks {
   display: flex;

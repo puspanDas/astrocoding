@@ -1,15 +1,17 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import Editor from '@monaco-editor/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Play, RotateCcw, Rocket, Cpu, Trophy, Gem, BookOpen,
   ChevronDown, ChevronRight, Maximize2, Minimize2,
-  Lightbulb, CheckCircle, AlertCircle, Sparkles, Target, Blocks, Code
+  Lightbulb, CheckCircle, AlertCircle, Sparkles, Target, Blocks, Code, Languages
 } from 'lucide-react'
 import MentorChat from '../components/MentorChat'
 import AIAssistant from '../components/AIAssistant'
 import StarField from '../components/StarField'
 import BlocklyEditor from '../components/BlocklyEditor'
+import CodeTranslator from '../components/CodeTranslator'
 import { gameToolbox } from '../engine/blocks'
 import GameRenderer from '../engine/GameRenderer'
 import useCodeSandbox from '../engine/CodeSandbox'
@@ -24,11 +26,21 @@ const LANGUAGES = {
   cpp: { label: 'C++', icon: '⚡', faction: 'C++ Vanguard' }
 }
 
+const ENGINE_MODES = {
+  blueprint: { label: 'Blueprint Mode', description: 'Visual block coding for ages 6-9', defaultCoding: 'blocks', showHints: true, showSidebar: true },
+  scaffold:  { label: 'Scaffold Mode',  description: 'Guided coding with hints for ages 10-15', defaultCoding: 'text', showHints: true, showSidebar: true },
+  terminal:  { label: 'Terminal Mode',  description: 'Full IDE for ages 16+', defaultCoding: 'text', showHints: false, showSidebar: false },
+}
+
 export default function GameDemo() {
+  const [searchParams] = useSearchParams()
+  const urlMode = searchParams.get('mode') // 'blueprint' | 'scaffold' | 'terminal' | null
+  const engineMode = ENGINE_MODES[urlMode] || null
+
   const [currentMission, setCurrentMission] = useState(0)
   const [language, setLanguage] = useState('javascript')
   const [showLangDropdown, setShowLangDropdown] = useState(false)
-  const [codingMode, setCodingMode] = useState('text') // 'text' | 'blocks'
+  const [codingMode, setCodingMode] = useState(engineMode?.defaultCoding || 'text')
   const [blockCode, setBlockCode] = useState('')
   const [code, setCode] = useState(missions[0].starterCode.javascript)
   const [isRunning, setIsRunning] = useState(false)
@@ -36,13 +48,14 @@ export default function GameDemo() {
   const [scrap, setScrap] = useState(0)
   const [cores, setCores] = useState(0)
   const [chatExpanded, setChatExpanded] = useState(false)
-  const [missionSidebar, setMissionSidebar] = useState(true)
-  const [hintIndex, setHintIndex] = useState(-1)
+  const [missionSidebar, setMissionSidebar] = useState(engineMode ? engineMode.showSidebar : true)
+  const [hintIndex, setHintIndex] = useState(engineMode?.showHints === false ? -2 : -1) // -2 = permanently hidden
   const [missionResult, setMissionResult] = useState(null) // null | 'success' | 'fail'
   const [showMissionComplete, setShowMissionComplete] = useState(false)
   const [completedMissions, setCompletedMissions] = useState(new Set())
   const [showApiRef, setShowApiRef] = useState(false)
   const [resetKey, setResetKey] = useState(0)
+  const [showTranslator, setShowTranslator] = useState(false)
 
   const rendererRef = useRef(null)
   const consoleEndRef = useRef(null)
@@ -203,6 +216,11 @@ export default function GameDemo() {
               ))}
             </div>
           )}
+          {engineMode && (
+            <span className="game-demo__mode-badge" data-mode={urlMode}>
+              {engineMode.label}
+            </span>
+          )}
         </div>
 
         <div className="game-demo__controls">
@@ -328,6 +346,14 @@ export default function GameDemo() {
                 <span>API</span>
               </button>
               <button
+                className="editor-btn editor-btn--translate"
+                onClick={() => setShowTranslator(true)}
+                title="See this code in all languages"
+              >
+                <Languages size={13} />
+                <span>Translate</span>
+              </button>
+              <button
                 className={`editor-btn ${codingMode === 'blocks' ? 'active' : ''}`}
                 onClick={() => setCodingMode(codingMode === 'blocks' ? 'text' : 'blocks')}
                 title="Toggle Block Coding"
@@ -339,15 +365,17 @@ export default function GameDemo() {
             </div>
 
             <div className="editor-header__actions">
-              <button
-                className="editor-btn editor-btn--hint"
-                onClick={handleShowHint}
-                disabled={hintIndex >= mission.hints.length - 1}
-                title="Get a hint"
-              >
-                <Lightbulb size={14} />
-                <span>Hint</span>
-              </button>
+              {hintIndex !== -2 && (
+                <button
+                  className="editor-btn editor-btn--hint"
+                  onClick={handleShowHint}
+                  disabled={hintIndex >= mission.hints.length - 1}
+                  title="Get a hint"
+                >
+                  <Lightbulb size={14} />
+                  <span>Hint</span>
+                </button>
+              )}
               <button
                 className="editor-btn editor-btn--run"
                 onClick={handleRun}
@@ -595,6 +623,12 @@ export default function GameDemo() {
         </div>
       </div>
       <AIAssistant />
+      <CodeTranslator
+        isOpen={showTranslator}
+        onClose={() => setShowTranslator(false)}
+        code={codingMode === 'blocks' ? blockCode : code}
+        sourceLang={language}
+      />
     </div>
   )
 }
