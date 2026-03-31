@@ -426,8 +426,9 @@ export default function GameDemo() {
                   />
                 </div>
                 <div style={{ width: '35%', borderLeft: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', background: '#1e1e1e' }}>
-                  <div style={{ padding: '8px 12px', fontSize: '0.75rem', color: '#a1a1aa', borderBottom: '1px solid var(--glass-border)', background: 'rgba(10, 14, 39, 0.5)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Code size={14} /> Generated Code
+                  <div style={{ padding: '8px 12px', fontSize: '0.75rem', color: '#a1a1aa', borderBottom: '1px solid var(--glass-border)', background: 'rgba(10, 14, 39, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Code size={14} /> Generated Code</div>
+                    <div style={{ fontSize: '0.65rem', color: '#6b7280', fontStyle: 'italic' }}>Click "Execute" to run</div>
                   </div>
                   <Editor
                     height="100%"
