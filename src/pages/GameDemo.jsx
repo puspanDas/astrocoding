@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Play, RotateCcw, Rocket, Cpu, Trophy, Gem, BookOpen,
   ChevronDown, ChevronRight, Maximize2, Minimize2,
-  Lightbulb, CheckCircle, AlertCircle, Sparkles, Target, Blocks
+  Lightbulb, CheckCircle, AlertCircle, Sparkles, Target, Blocks, Code
 } from 'lucide-react'
 import MentorChat from '../components/MentorChat'
 import AIAssistant from '../components/AIAssistant'
@@ -417,11 +417,35 @@ export default function GameDemo() {
           {/* Editor Body */}
           <div className="editor-body">
             {codingMode === 'blocks' ? (
-              <BlocklyEditor
-                toolbox={gameToolbox}
-                language={language}
-                onChange={setBlockCode}
-              />
+              <div style={{ display: 'flex', width: '100%', height: '100%' }}>
+                <div style={{ flex: 1, position: 'relative' }}>
+                  <BlocklyEditor
+                    toolbox={gameToolbox}
+                    language={language}
+                    onChange={setBlockCode}
+                  />
+                </div>
+                <div style={{ width: '35%', borderLeft: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', background: '#1e1e1e' }}>
+                  <div style={{ padding: '8px 12px', fontSize: '0.75rem', color: '#a1a1aa', borderBottom: '1px solid var(--glass-border)', background: 'rgba(10, 14, 39, 0.5)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Code size={14} /> Generated Code
+                  </div>
+                  <Editor
+                    height="100%"
+                    language={language === 'cpp' ? 'cpp' : language}
+                    value={blockCode}
+                    theme="vs-dark"
+                    options={{
+                      readOnly: true,
+                      minimap: { enabled: false },
+                      fontSize: 13,
+                      fontFamily: "'Fira Code', 'Courier New', monospace",
+                      scrollBeyondLastLine: false,
+                      padding: { top: 16 },
+                      wordWrap: 'on'
+                    }}
+                  />
+                </div>
+              </div>
             ) : (
               <Editor
                 height="100%"

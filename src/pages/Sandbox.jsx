@@ -504,18 +504,42 @@ SELECT * FROM users;`)
           
           <div className="editor-body">
             {codingMode === 'blocks' ? (
-              <BlocklyEditor
-                toolbox={sandboxToolbox}
-                language={getLanguage() === 'python' ? 'python' : 'javascript'}
-                onChange={(code) => {
-                  setBlockCode(code)
-                  if (activeTab === 'html') setHtmlCode(code)
-                  else if (activeTab === 'css') setCssCode(code)
-                  else if (activeTab === 'js') setJsCode(code)
-                  else if (activeTab === 'python') setPythonCode(code)
-                  else if (activeTab === 'sql') setSqlCode(code)
-                }}
-              />
+              <div style={{ display: 'flex', width: '100%', height: '100%' }}>
+                <div style={{ flex: 1, position: 'relative' }}>
+                  <BlocklyEditor
+                    toolbox={sandboxToolbox}
+                    language={getLanguage() === 'python' ? 'python' : 'javascript'}
+                    onChange={(code) => {
+                      setBlockCode(code)
+                      if (activeTab === 'html') setHtmlCode(code)
+                      else if (activeTab === 'css') setCssCode(code)
+                      else if (activeTab === 'js') setJsCode(code)
+                      else if (activeTab === 'python') setPythonCode(code)
+                      else if (activeTab === 'sql') setSqlCode(code)
+                    }}
+                  />
+                </div>
+                <div style={{ width: '40%', borderLeft: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', background: '#1e1e1e' }}>
+                  <div style={{ padding: '8px 12px', fontSize: '0.75rem', color: '#a1a1aa', borderBottom: '1px solid var(--glass-border)', background: 'rgba(10, 14, 39, 0.5)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Code size={14} /> Generated Code
+                  </div>
+                  <Editor
+                    height="100%"
+                    language={getLanguage()}
+                    value={blockCode}
+                    theme="vs-dark"
+                    options={{
+                      readOnly: true,
+                      minimap: { enabled: false },
+                      fontSize: 13,
+                      fontFamily: "'Fira Code', 'Courier New', monospace",
+                      scrollBeyondLastLine: false,
+                      padding: { top: 16 },
+                      wordWrap: 'on'
+                    }}
+                  />
+                </div>
+              </div>
             ) : (
               <Editor
                 height="100%"
