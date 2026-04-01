@@ -18,9 +18,12 @@ import textwrap
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Tuple
 
-_model = None
-_index = None
-_chunks = None
+class _State:
+    model = None
+    index = None
+    chunks = None
+
+_state = _State()
 
 BACKEND_DIR = Path(__file__).parent
 INDEX_DIR = BACKEND_DIR / "codebase_index"
@@ -37,17 +40,16 @@ INDEXABLE_DIRS = [
 
 def _get_model():
     """Lazy load the sentence transformer model."""
-    global _model
-    if _model is None:
+    if _state.model is None:
         try:
             from sentence_transformers import SentenceTransformer
             print("🚀 Loading AI Model (sentence-transformers/all-MiniLM-L6-v2)...")
-            _model = SentenceTransformer('all-MiniLM-L6-v2')
+            _state.model = SentenceTransformer('all-MiniLM-L6-v2')
         except ImportError:
             raise ImportError(
                 "sentence-transformers not installed. Run: pip install sentence-transformers"
             )
-    return _model
+    return _state.model
 
 def _get_faiss():
     """Lazy import FAISS."""
@@ -104,8 +106,6 @@ def _extract_chunks_from_file(file_path: Path) -> List[CodeChunk]:
     return chunks
 
 def index_codebase() -> Dict[str, Any]:
-    global _index, _chunks
-    
     faiss = _get_faiss()
     model = _get_model()
     INDEX_DIR.mkdir(exist_ok=True)
@@ -136,30 +136,35 @@ def index_codebase() -> Dict[str, Any]:
     with open(CHUNKS_FILE, 'wb') as f:
         pickle.dump([chunk.to_dict() for chunk in all_chunks], f)
         
-    _index = index
-    _chunks = all_chunks
+    _state.index = index
+    _state.chunks = all_chunks
     return {"success": True, "files_indexed": len(files_indexed), "total_chunks": len(all_chunks)}
 
 def _load_index():
-    global _index, _chunks
-    if _index is not None and _chunks is not None:
-        return _index, _chunks
+    if _state.index is not None and _state.chunks is not None:
+        return _state.index, _state.chunks
         
     faiss = _get_faiss()
     if not INDEX_FILE.exists() or not CHUNKS_FILE.exists():
         res = index_codebase()
         if "error" in res:
             raise ValueError(res["error"])
-        return _index, _chunks
+        return _state.index, _state.chunks
         
-    _index = faiss.read_index(str(INDEX_FILE))
+    _state.index = faiss.read_index(str(INDEX_FILE))
     with open(CHUNKS_FILE, 'rb') as f:
-        _chunks = [CodeChunk.from_dict(d) for d in pickle.load(f)]
+        _state.chunks = [CodeChunk.from_dict(d) for d in pickle.load(f)]
         
-    return _index, _chunks
+    return _state.index, _state.chunks
+
+def _sanitize_query(text: str, max_len: int = 500) -> str:
+    """Strip control characters and cap length to prevent injection via query strings."""
+    sanitized = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]', '', text)
+    return sanitized[:max_len]
 
 def query_assistant(question: str) -> Dict[str, Any]:
     try:
+        question = _sanitize_query(question)
         model = _get_model()
         index, chunks = _load_index()
         
@@ -248,7 +253,8 @@ def fix_code(code: str, language: str, error_msg: str = "") -> Dict[str, Any]:
     Analyze code, detect syntax errors, and return a corrected version with explanation.
     Uses Python AST for Python code, and regex-based heuristics for other languages.
     """
-    language = language.lower()
+    language = _sanitize_query(language, max_len=20).lower()
+    error_msg = _sanitize_query(error_msg, max_len=1000)
 
     if language == "python":
         return _fix_python(code, error_msg)

@@ -91,6 +91,7 @@ SELECT * FROM users;`)
   // Listen for error messages from the preview iframe
   useEffect(() => {
     function handleMessage(event) {
+      if (event.origin !== window.location.origin && event.origin !== 'null') return
       if (event.data && event.data.type === 'sandbox-error') {
         setLastError(event.data.error)
         requestAiFix(getActiveCode(), getLanguage(), event.data.error)
@@ -414,7 +415,15 @@ SELECT * FROM users;`)
       if (p.startsWith('`') && p.endsWith('`')) {
         return <code key={i} className="ai-fix__inline-code">{p.slice(1, -1)}</code>
       }
-      return <span key={i} dangerouslySetInnerHTML={{ __html: p.replace(/\n/g, '<br/>').replace(/^## (.+)/gm, '<h3>$1</h3>').replace(/^### (.+)/gm, '<h4>$1</h4>').replace(/^- (.+)/gm, '• $1<br/>') }} />
+      const html = p
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\n/g, '<br/>')
+        .replace(/^## (.+)/gm, '<h3>$1</h3>')
+        .replace(/^### (.+)/gm, '<h4>$1</h4>')
+        .replace(/^- (.+)/gm, '• $1<br/>')
+      return <span key={i} dangerouslySetInnerHTML={{ __html: html }} />
     })
   }
 
