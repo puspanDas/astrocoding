@@ -80,7 +80,13 @@ class CodeChunk:
 def _extract_chunks_from_file(file_path: Path) -> List[CodeChunk]:
     chunks = []
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
+        # Guard against path traversal
+        resolved = file_path.resolve()
+        allowed = [d.resolve() for d in INDEXABLE_DIRS]
+        if not any(str(resolved).startswith(str(a)) for a in allowed):
+            print(f"Skipping disallowed path: {file_path}")
+            return chunks
+        with open(resolved, 'r', encoding='utf-8') as f:
             content = f.read()
             
         # Basic chunking by breaking into 30-line segments
