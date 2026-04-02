@@ -21,7 +21,10 @@ export default function useCodeSandbox() {
 
     function handleMessage(event) {
       if (event.source !== iframe.contentWindow) return
-      if (event.origin !== window.location.origin && event.origin !== 'null') return
+      // srcdoc iframes have opaque origin reported as the string 'null'
+      const isSrcdoc = event.origin === 'null'
+      const isSameOrigin = event.origin === window.location.origin
+      if (!isSrcdoc && !isSameOrigin) return
       const data = event.data
       if (!data) return
 
@@ -75,7 +78,7 @@ export default function useCodeSandbox() {
         resolve(result)
       }
 
-      iframeRef.current.contentWindow.postMessage({ type: 'execute', code }, window.location.origin || '*')
+      iframeRef.current.contentWindow.postMessage({ type: 'execute', code }, '*')
     })
   }, [])
 
