@@ -9,78 +9,87 @@ export function transpileToJS(code, language) {
   let js = code
 
   if (language === 'java' || language === 'cpp') {
-    // 1. Remove standard boilerplate (imports/includes)
+    // 1. Remove standard boilerplate
     js = js.replace(/#include\s+<.*?>/g, '')
-    js = js.replace(/import\s+.*?;/g, '')
+    js = js.replace(/import\s+[\w.]+;/g, '')
 
-    // 2. Remove class and outer method wrappers typical in these languages
-    // Match: public class X { ... }
+    // 2. Remove class wrapper: public class X {
     js = js.replace(/public\s+class\s+\w+\s*\{/g, '')
-    // Match: public static void main(String[] args) {
-    js = js.replace(/public\s+static\s+\w+\s+\w+\s*\(.*?\)\s*\{/g, '')
-    // Match: bool function(Rover& rover) {
-    js = js.replace(/(bool|int|void|boolean)\s+\w+\s*\(.*?\)\s*\{/g, '')
+    // Remove method wrappers: public static void/int foo(...) {
+    js = js.replace(/public\s+static\s+\w+\s+\w+\s*\([^)]*\)\s*\{/g, '')
+    // Remove C++ function wrappers: void execute() { / void racePlan() {
+    js = js.replace(/(?:void|bool|int|float|double)\s+\w+\s*\([^)]*\)\s*\{/g, '')
 
-    // 3. Replace static types with 'let'
-    js = js.replace(/\bint\b/g, 'let')
-    js = js.replace(/\bfloat\b/g, 'let')
-    js = js.replace(/\bdouble\b/g, 'let')
-    js = js.replace(/\bboolean\b/g, 'let')
-    js = js.replace(/\bbool\b/g, 'let')
-    
+    // 3. Replace typed variable declarations — only at start of statement
+    // e.g. "int i = 0" → "let i = 0", but NOT inside rover.method() calls
+    js = js.replace(/(?:^|(?<=[;{\n]))\s*(int|float|double|boolean|bool)\s+(?=[a-zA-Z_])/gm,
+      (match, type) => match.replace(type, 'let')
+    )
+
     // 4. Print statements
-    js = js.replace(/System\.out\.println/g, 'console.log')
-    js = js.replace(/std::cout\s*<<\s*(.*?)\s*<</g, 'console.log($1)') // Very hacky C++ cout
+    js = js.replace(/System\.out\.println\s*\(/g, 'console.log(')
+    js = js.replace(/std::cout\s*<<\s*(.*?)(?:\s*<<\s*(?:std::endl|"\\n"|'\\n'))?\s*;/g, 'console.log($1);')
 
-    // Strip trailing braces that belonged to removed class/method wrappers
-    // For MVP, we aggressively trim mismatched trailing braces from the end of the script
-    let braceCount = 0;
-    const chars = js.split('');
+    // 5. Strip mismatched trailing braces left by removed wrappers
+    let braceCount = 0
+    const chars = js.split('')
     for (let i = 0; i < chars.length; i++) {
-        if (chars[i] === '{') braceCount++;
-        else if (chars[i] === '}') {
-            if (braceCount === 0) {
-                // Remove mismatched brace
-                chars[i] = ' ';
-            } else {
-                braceCount--;
-            }
-        }
+      if (chars[i] === '{') braceCount++
+      else if (chars[i] === '}') {
+        if (braceCount === 0) chars[i] = ' '
+        else braceCount--
+      }
     }
-    js = chars.join('');
+    js = chars.join('')
   }
 
   if (language === 'python') {
-    // Convert python comments — only at line start or after whitespace, not inside strings
-    js = js.replace(/^(\s*)#(?!\w*['"])/gm, '$1//')
-    js = js.replace(/([^'"`])#(?![0-9a-fA-F]{3,6}\b)(.*)$/gm, '$1//$2')
-    js = js.replace(/def\s+(\w+)\s*\((.*?)\):/g, 'function $1($2) {')
-    js = js.replace(/for\s+(\w+)\s+in\s+range\((.*?)\):/g, 'for (let $1 = 0; $1 < $2; $1++) {')
-    js = js.replace(/if\s+(.*?):/g, 'if ($1) {')
-    js = js.replace(/elif\s+(.*?):/g, '} else if ($1) {')
-    js = js.replace(/else:/g, '} else {')
-    js = js.replace(/True/g, 'true')
-    js = js.replace(/False/g, 'false')
-    js = js.replace(/print\(/g, 'console.log(')
+    // 1. Strip comments — lines starting with # (after optional whitespace)
+    js = js.replace(/^([ \t]*)#(.*)$/gm, '$1//$2')
 
-    // Add closing braces based on indentation. MVP solution.
+    // 2. Function definitions
+    js = js.replace(/def\s+(\w+)\s*\(([^)]*)\)\s*:/g, 'function $1($2) {')
+
+    // 3. for i in range — handle range(n), range(start,end), range(start,end,step)
+    js = js.replace(
+      /for\s+(\w+)\s+in\s+range\(\s*(\d+)\s*\)\s*:/g,
+      'for (let $1 = 0; $1 < $2; $1++) {'
+    )
+    js = js.replace(
+      /for\s+(\w+)\s+in\s+range\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*:/g,
+      'for (let $1 = $2; $1 < $3; $1++) {'
+    )
+    js = js.replace(
+      /for\s+(\w+)\s+in\s+range\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(-?\d+)\s*\)\s*:/g,
+      'for (let $1 = $2; $1 < $3; $1 += $4) {'
+    )
+
+    // 4. elif before if (order matters)
+    js = js.replace(/elif\s+(.+?)\s*:/g, '} else if ($1) {')
+    js = js.replace(/else\s*:/g, '} else {')
+    // if — only match standalone if (not inside already-converted lines)
+    js = js.replace(/^([ \t]*)if\s+(.+?)\s*:/gm, '$1if ($2) {')
+
+    // 5. Booleans and print
+    js = js.replace(/\bTrue\b/g, 'true')
+    js = js.replace(/\bFalse\b/g, 'false')
+    js = js.replace(/\bNone\b/g, 'null')
+    js = js.replace(/\bprint\s*\(/g, 'console.log(')
+
+    // 6. Add closing braces based on indentation
     const lines = js.split('\n')
-    let out = []
-    let indentStack = [0]
+    const out = []
+    const indentStack = [0]
 
-    for (let line of lines) {
-      if (line.trim().startsWith('//') || line.trim() === '') {
+    for (const line of lines) {
+      const trimmed = line.trim()
+      if (trimmed === '' || trimmed.startsWith('//')) {
         out.push(line)
-        continue
-      }
-      if (line.trim().startsWith('#')) {
-        out.push(line.replace(/#/, '//'))
         continue
       }
 
       const indent = line.search(/\S|$/)
 
-      // Dedent = closing brace
       while (indent < indentStack[indentStack.length - 1]) {
         out.push(' '.repeat(indentStack[indentStack.length - 1] - 4) + '}')
         indentStack.pop()
@@ -88,8 +97,7 @@ export function transpileToJS(code, language) {
 
       out.push(line)
 
-      // Indent = new block
-      if (line.trim().endsWith('{')) {
+      if (trimmed.endsWith('{')) {
         indentStack.push(indent + 4)
       }
     }
@@ -98,9 +106,9 @@ export function transpileToJS(code, language) {
       indentStack.pop()
       out.push('}')
     }
+
     js = out.join('\n')
   }
 
-  // Remove debug log — do not leak transpiled code to browser console
   return js
 }

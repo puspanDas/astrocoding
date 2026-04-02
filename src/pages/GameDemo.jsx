@@ -131,6 +131,7 @@ export default function GameDemo() {
   function handleLanguageChange(lang) {
     setLanguage(lang)
     setCode(mission.starterCode[lang])
+    setResetKey(prev => prev + 1)  // force Monaco to re-mount with new language code
     setShowLangDropdown(false)
     setConsoleOutput([])
     setHintIndex(-1)
@@ -589,7 +590,7 @@ export default function GameDemo() {
                 height="100%"
                 key={`editor-${currentMission}-${language}-${resetKey}`}
                 defaultLanguage={language === 'cpp' ? 'cpp' : language}
-                defaultValue={code}
+                defaultValue={getActiveCode()}
                 onChange={(val) => setCode(val || '')}
                 theme="vs-dark"
                 options={{
