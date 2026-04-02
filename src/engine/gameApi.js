@@ -115,7 +115,6 @@ export function buildSandboxHTML() {
 
       let error = null;
       try {
-        // Time limit: cut execution after 5 seconds worth of commands
         const fn = new Function(event.data.code);
         fn();
       } catch(e) {
@@ -127,10 +126,27 @@ export function buildSandboxHTML() {
         _commands.push({ type: 'error', error: error });
       }
 
+      // Build snapshots: state of rover AFTER each command
+      const snapshots = [];
+      let sx = 60, sy = 300, scolor = '#a855f7', sscore = 0, sboosted = false, ssignals = 0;
+      _commands.forEach(function(cmd) {
+        switch(cmd.type) {
+          case 'move':    sx += cmd.dx; sy += cmd.dy; break;
+          case 'thrust':  sy -= cmd.lift; break;
+          case 'boost':   sboosted = true; break;
+          case 'setColor': scolor = cmd.color; break;
+          case 'signal':  ssignals++; break;
+          case 'collect': sscore++; break;
+          default: break;
+        }
+        snapshots.push({ x: Math.round(sx), y: Math.round(sy), color: scolor, score: sscore, signalsSent: ssignals });
+      });
+
       // Send results back to parent
       parent.postMessage({
         type: 'result',
         commands: _commands.slice(0, 200),
+        snapshots: snapshots.slice(0, 200),
         logs: _logs.slice(0, 50),
         finalState: {
           x: Math.round(_x),

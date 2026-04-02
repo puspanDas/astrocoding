@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Play, RotateCcw, Rocket, Cpu, Trophy, Gem, BookOpen,
   ChevronDown, ChevronRight, Maximize2, Minimize2,
-  Lightbulb, CheckCircle, AlertCircle, Sparkles, Target, Blocks, Code, Languages, Save, Trash2
+  Lightbulb, CheckCircle, AlertCircle, Sparkles, Target, Blocks, Code, Languages, Save, Trash2, Clock
 } from 'lucide-react'
 import MentorChat from '../components/MentorChat'
 import AIAssistant from '../components/AIAssistant'
@@ -17,6 +17,7 @@ import GameRenderer from '../engine/GameRenderer'
 import useCodeSandbox from '../engine/CodeSandbox'
 import missions from '../engine/missions'
 import { transpileToJS } from '../engine/transpiler'
+import TimeTravelDebugger from '../engine/TimeTravelDebugger'
 import './GameDemo.css'
 
 const LANGUAGES = {
@@ -67,6 +68,9 @@ export default function GameDemo() {
   const [resetKey, setResetKey] = useState(0)
   const [showTranslator, setShowTranslator] = useState(false)
   const [showSavedToast, setShowSavedToast] = useState(false)
+  const [debugCommands, setDebugCommands] = useState([])
+  const [debugSnapshots, setDebugSnapshots] = useState([])
+  const [showDebugger, setShowDebugger] = useState(false)
 
   const rendererRef = useRef(null)
   const consoleEndRef = useRef(null)
@@ -115,6 +119,9 @@ export default function GameDemo() {
     setHintIndex(-1)
     setMissionResult(null)
     setShowMissionComplete(false)
+    setDebugCommands([])
+    setDebugSnapshots([])
+    setShowDebugger(false)
     if (rendererRef.current) {
       rendererRef.current.reset(missions[index].terrain)
     }
@@ -129,6 +136,9 @@ export default function GameDemo() {
     setHintIndex(-1)
     setMissionResult(null)
     setShowMissionComplete(false)
+    setDebugCommands([])
+    setDebugSnapshots([])
+    setShowDebugger(false)
     if (rendererRef.current) {
       rendererRef.current.reset(mission.terrain)
     }
@@ -181,6 +191,16 @@ export default function GameDemo() {
 
     setConsoleOutput(output)
 
+    // Store commands for time-travel debugger (JS and Python only)
+    if (language === 'javascript' || language === 'python') {
+      setDebugCommands(result.commands || [])
+      setDebugSnapshots(result.snapshots || [])
+    } else {
+      setDebugCommands([])
+      setDebugSnapshots([])
+      setShowDebugger(false)
+    }
+
     // Play animation on game renderer
     if (rendererRef.current && result.commands.length > 0) {
       rendererRef.current.reset(mission.terrain)
@@ -223,10 +243,23 @@ export default function GameDemo() {
     setMissionResult(null)
     setHintIndex(-1)
     setShowMissionComplete(false)
+    setDebugCommands([])
+    setDebugSnapshots([])
+    setShowDebugger(false)
     if (rendererRef.current) {
       rendererRef.current.reset(mission.terrain)
     }
   }
+
+  // Time-travel debugger: jump renderer to a step
+  const handleDebugStep = useCallback((stepIndex) => {
+    if (!rendererRef.current || !debugCommands.length) return
+    if (stepIndex < 0) {
+      rendererRef.current.reset(mission.terrain)
+    } else {
+      rendererRef.current.jumpToStep(debugSnapshots[stepIndex], debugCommands, stepIndex)
+    }
+  }, [debugCommands, debugSnapshots, mission.terrain])
 
   // Show next hint
   function handleShowHint() {
@@ -618,7 +651,29 @@ export default function GameDemo() {
           <div className="game-panel-header">
             <span>🌌 Space Environment</span>
             <span className="game-panel-header__terrain">{mission.terrain}</span>
+            {debugCommands.length > 0 && (language === 'javascript' || language === 'python') && (
+              <button
+                className={`editor-btn ${showDebugger ? 'active' : ''}`}
+                style={{ marginLeft: 'auto', background: showDebugger ? 'rgba(168,85,247,0.2)' : 'transparent', fontSize: '0.75rem' }}
+                onClick={() => setShowDebugger(d => !d)}
+                title="Time-Travel Debugger"
+              >
+                <Clock size={13} />
+                <span>Debug</span>
+              </button>
+            )}
           </div>
+          <AnimatePresence>
+            {showDebugger && debugCommands.length > 0 && (
+              <TimeTravelDebugger
+                commands={debugCommands}
+                snapshots={debugSnapshots}
+                onStep={handleDebugStep}
+                onClose={() => setShowDebugger(false)}
+                language={language}
+              />
+            )}
+          </AnimatePresence>
           <div className="game-canvas-wrapper">
             <GameRenderer
               ref={rendererRef}

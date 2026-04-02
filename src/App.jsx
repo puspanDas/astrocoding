@@ -4,6 +4,7 @@ import Navbar from './components/Navbar'
 import Home from './pages/Home'
 import GameDemo from './pages/GameDemo'
 import Sandbox from './pages/Sandbox'
+import Profile from './pages/Profile'
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/play" element={<GameDemo />} />
           <Route path="/sandbox" element={<Sandbox />} />
+          <Route path="/profile" element={<Profile />} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>

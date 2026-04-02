@@ -99,11 +99,41 @@ const GameRenderer = forwardRef(function GameRenderer({ terrain, onCommandsCompl
     state._finalState = finalState
   }, [])
 
+  // Jump renderer to a specific step snapshot (for time-travel debugger)
+  const jumpToStep = useCallback((snapshot, commands, stepIndex) => {
+    const state = stateRef.current
+    state.phase = 'paused'
+    state.rover = {
+      x: snapshot.x,
+      y: snapshot.y,
+      color: snapshot.color,
+      angle: 0,
+    }
+    // Rebuild trail up to this step
+    state.trail = []
+    let tx = 60, ty = 300
+    for (let i = 0; i <= stepIndex; i++) {
+      const cmd = commands[i]
+      if (!cmd) break
+      if (cmd.type === 'move' || cmd.type === 'thrust') {
+        tx += (cmd.dx || 0)
+        ty += (cmd.dy || 0) - (cmd.lift || 0)
+        state.trail.push({ x: tx, y: ty, age: 0 })
+      }
+    }
+    state.particles = []
+    state.signals = []
+    state.projectiles = []
+    state.score = snapshot.score || 0
+    setStatusText(`🕐 Step ${stepIndex + 1} of ${commands.length}`)
+  }, [])
+
   // Expose methods to parent
   useImperativeHandle(ref, () => ({
     reset,
     playCommands,
-  }), [reset, playCommands])
+    jumpToStep,
+  }), [reset, playCommands, jumpToStep])
 
   // Initialize on terrain change
   useEffect(() => {

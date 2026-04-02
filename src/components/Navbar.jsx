@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Rocket, Menu, X } from 'lucide-react'
+import { Rocket, Menu, X, User } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import ThemeSwitcher from './ThemeSwitcher'
 import './Navbar.css'
@@ -41,6 +41,10 @@ export default function Navbar() {
           <a href="/#engine" className="navbar__link">Engine</a>
           <a href="/#personas" className="navbar__link">For Everyone</a>
           <Link to="/sandbox" className="navbar__link">Sandbox IDE</Link>
+          <Link to="/profile" className="navbar__link navbar__link--profile">
+            <User size={14} />
+            <span>Profile</span>
+          </Link>
           <ThemeSwitcher />
           <Link to="/play" className="btn-primary navbar__cta">
             <span>Launch Mission</span>

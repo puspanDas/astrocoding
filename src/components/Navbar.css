@@ -85,6 +85,12 @@
   width: 100%;
 }
 
+.navbar__link--profile {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
 .navbar__cta {
   padding: 10px 24px;
   font-size: 0.85rem;
