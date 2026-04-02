@@ -221,7 +221,7 @@ for i in range(4):
     rover.move_up(30 * i)
 
 crystals = rover.get_score()
-print("Crystals collected: " + crystals)
+print("Crystals collected: " + str(crystals))
 rover.send_signal("Collection complete!")
 `,
       java: `// 💎 Mission: Collect Space Crystals!
@@ -301,7 +301,7 @@ def race_plan():
     rover.move_forward(100)
 
 race_plan()
-print("Position: " + rover.get_x())
+print("Position: " + str(rover.get_x()))
 rover.send_signal("Finished!")
 `,
       java: `// 🏁 Mission: Win the Space Race!

@@ -210,6 +210,8 @@ export default function GameDemo() {
     }
 
     // Check mission success after animation completes
+    // Renderer processes ~1 command per 50ms (dt*3 at 60fps), add 800ms buffer
+    const animDuration = result.commands.length * 55 + 800
     setTimeout(() => {
       if (!result.error && mission.validateSuccess(result.finalState)) {
         setMissionResult('success')
@@ -232,7 +234,7 @@ export default function GameDemo() {
         ])
       }
       setIsRunning(false)
-    }, result.commands.length * 350 + 500)
+    }, animDuration)
   }
 
   // Reset to starter code

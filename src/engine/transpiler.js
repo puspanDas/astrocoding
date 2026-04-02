@@ -51,8 +51,9 @@ export function transpileToJS(code, language) {
   }
 
   if (language === 'python') {
-    // Basic python block to JS
-    js = js.replace(/(^|\s)#/g, '$1//') // Convert python comments to JS, ignoring hex colors like #fff
+    // Convert python comments — only at line start or after whitespace, not inside strings
+    js = js.replace(/^(\s*)#(?!\w*['"])/gm, '$1//')
+    js = js.replace(/([^'"`])#(?![0-9a-fA-F]{3,6}\b)(.*)$/gm, '$1//$2')
     js = js.replace(/def\s+(\w+)\s*\((.*?)\):/g, 'function $1($2) {')
     js = js.replace(/for\s+(\w+)\s+in\s+range\((.*?)\):/g, 'for (let $1 = 0; $1 < $2; $1++) {')
     js = js.replace(/if\s+(.*?):/g, 'if ($1) {')
@@ -100,6 +101,6 @@ export function transpileToJS(code, language) {
     js = out.join('\n')
   }
 
-  console.log("Transpiled JS:\n", js)
+  // Remove debug log — do not leak transpiled code to browser console
   return js
 }

@@ -393,19 +393,27 @@ const GameRenderer = forwardRef(function GameRenderer({ terrain, onCommandsCompl
       ctx.save()
       ctx.translate(r.x, r.y)
 
-      // Trail glow
+      // Trail glow — coords are absolute, draw before translate
       const state = stateRef.current
       if (state.trail.length > 1) {
+        ctx.save()
+        ctx.restore() // restore translate before drawing trail
+      }
+      ctx.restore()
+      // Draw trail in absolute coords (outside translate)
+      if (state.trail.length > 1) {
         ctx.beginPath()
-        ctx.moveTo(state.trail[0].x - r.x, state.trail[0].y - r.y)
-        state.trail.forEach((t, i) => {
-          ctx.lineTo(t.x - r.x, t.y - r.y)
+        ctx.moveTo(state.trail[0].x, state.trail[0].y)
+        state.trail.forEach(t => {
+          ctx.lineTo(t.x, t.y)
           t.age += 0.01
         })
         ctx.strokeStyle = `${r.color}33`
         ctx.lineWidth = 2
         ctx.stroke()
       }
+      ctx.save()
+      ctx.translate(r.x, r.y)
 
       // Wheels
       ctx.fillStyle = '#444'

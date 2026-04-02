@@ -45,7 +45,8 @@ export function buildSandboxHTML() {
       _commands.push({ type: 'turn', direction: 'right' });
     },
     thrust: function(power) {
-      power = Math.min(Math.max(Number(power) || 0, 1), 10);
+      power = Math.min(Math.max(Number(power) || 0, 0), 10);
+      if (power === 0) { _commands.push({ type: 'thrust', power: 0, lift: 0 }); return; }
       const lift = power * 15;
       _y -= lift;
       _commands.push({ type: 'thrust', power: power, lift: lift });
@@ -55,6 +56,7 @@ export function buildSandboxHTML() {
       _commands.push({ type: 'boost' });
     },
     collect: function() {
+      _score++;
       _commands.push({ type: 'collect', atX: _x, atY: _y });
     },
     shoot: function() {
