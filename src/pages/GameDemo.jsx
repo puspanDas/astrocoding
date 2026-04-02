@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Play, RotateCcw, Rocket, Cpu, Trophy, Gem, BookOpen,
   ChevronDown, ChevronRight, Maximize2, Minimize2,
-  Lightbulb, CheckCircle, AlertCircle, Sparkles, Target, Blocks, Code, Languages
+  Lightbulb, CheckCircle, AlertCircle, Sparkles, Target, Blocks, Code, Languages, Save, Trash2
 } from 'lucide-react'
 import MentorChat from '../components/MentorChat'
 import AIAssistant from '../components/AIAssistant'
@@ -37,31 +37,68 @@ export default function GameDemo() {
   const urlMode = searchParams.get('mode') // 'blueprint' | 'scaffold' | 'terminal' | null
   const engineMode = ENGINE_MODES[urlMode] || null
 
-  const [currentMission, setCurrentMission] = useState(0)
-  const [language, setLanguage] = useState('javascript')
+  // ——— Load persisted progress from localStorage ———
+  const savedProgress = useRef(null)
+  if (savedProgress.current === null) {
+    try {
+      const raw = localStorage.getItem('astrocode-progress')
+      savedProgress.current = raw ? JSON.parse(raw) : {}
+    } catch { savedProgress.current = {} }
+  }
+  const sp = savedProgress.current
+
+  const [currentMission, setCurrentMission] = useState(sp.lastMission || 0)
+  const [language, setLanguage] = useState(sp.language || 'javascript')
   const [showLangDropdown, setShowLangDropdown] = useState(false)
   const [codingMode, setCodingMode] = useState(engineMode?.defaultCoding || 'text')
   const [blockCode, setBlockCode] = useState('')
-  const [code, setCode] = useState(missions[0].starterCode.javascript)
+  const [code, setCode] = useState(missions[sp.lastMission || 0].starterCode[sp.language || 'javascript'])
   const [isRunning, setIsRunning] = useState(false)
   const [consoleOutput, setConsoleOutput] = useState([])
-  const [scrap, setScrap] = useState(0)
-  const [cores, setCores] = useState(0)
+  const [scrap, setScrap] = useState(sp.scrap || 0)
+  const [cores, setCores] = useState(sp.cores || 0)
   const [chatExpanded, setChatExpanded] = useState(false)
   const [missionSidebar, setMissionSidebar] = useState(engineMode ? engineMode.showSidebar : true)
   const [hintIndex, setHintIndex] = useState(engineMode?.showHints === false ? -2 : -1) // -2 = permanently hidden
   const [missionResult, setMissionResult] = useState(null) // null | 'success' | 'fail'
   const [showMissionComplete, setShowMissionComplete] = useState(false)
-  const [completedMissions, setCompletedMissions] = useState(new Set())
+  const [completedMissions, setCompletedMissions] = useState(() => new Set(sp.completedMissions || []))
   const [showApiRef, setShowApiRef] = useState(false)
   const [resetKey, setResetKey] = useState(0)
   const [showTranslator, setShowTranslator] = useState(false)
+  const [showSavedToast, setShowSavedToast] = useState(false)
 
   const rendererRef = useRef(null)
   const consoleEndRef = useRef(null)
   const { execute, ready } = useCodeSandbox()
 
   const mission = missions[currentMission]
+
+  // ——— Persist progress to localStorage ———
+  const saveTimeoutRef = useRef(null)
+  useEffect(() => {
+    // Debounce saves to avoid excessive writes
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
+    saveTimeoutRef.current = setTimeout(() => {
+      try {
+        const progress = {
+          scrap,
+          cores,
+          completedMissions: [...completedMissions],
+          lastMission: currentMission,
+          language,
+          lastSaved: new Date().toISOString(),
+        }
+        localStorage.setItem('astrocode-progress', JSON.stringify(progress))
+        // Only show toast when there's actual progress (not initial mount)
+        if (scrap > 0 || cores > 0 || completedMissions.size > 0) {
+          setShowSavedToast(true)
+          setTimeout(() => setShowSavedToast(false), 2000)
+        }
+      } catch { /* localStorage might be full or disabled */ }
+    }, 500)
+    return () => { if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current) }
+  }, [scrap, cores, completedMissions, currentMission, language])
 
   // Auto-scroll console to bottom
   useEffect(() => {
@@ -241,9 +278,46 @@ export default function GameDemo() {
               <Trophy size={14} />
               <span>{cores}</span>
             </div>
+            {(scrap > 0 || cores > 0) && (
+              <button
+                className="reward-badge reward-badge--reset"
+                onClick={() => {
+                  if (window.confirm('Reset all progress? This will clear your scrap, cores, and completed missions.')) {
+                    setScrap(0)
+                    setCores(0)
+                    setCompletedMissions(new Set())
+                    setCurrentMission(0)
+                    setCode(missions[0].starterCode[language])
+                    setConsoleOutput([])
+                    setMissionResult(null)
+                    setShowMissionComplete(false)
+                    localStorage.removeItem('astrocode-progress')
+                  }
+                }}
+                title="Reset Progress"
+              >
+                <Trash2 size={12} />
+              </button>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Progress Saved Toast */}
+      <AnimatePresence>
+        {showSavedToast && (
+          <motion.div
+            className="saved-toast"
+            initial={{ opacity: 0, y: -20, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: -20, x: '-50%' }}
+            transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+          >
+            <Save size={12} />
+            <span>Progress saved</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ===== MAIN LAYOUT ===== */}
       <div className="game-demo__main">

@@ -871,3 +871,57 @@
   border-color: rgba(108, 60, 224, 0.5);
   color: var(--text-primary);
 }
+
+/* ===== PROGRESS SAVED TOAST ===== */
+.saved-toast {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 50px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--python-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: var(--font-display);
+  letter-spacing: 0.03em;
+  z-index: 100;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.15);
+  pointer-events: none;
+}
+
+/* ===== RESET PROGRESS BUTTON ===== */
+.reward-badge--reset {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.15);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.reward-badge--reset:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: var(--cpp-secondary);
+  transform: scale(1.1);
+}
+
+/* Light theme overrides */
+[data-theme="light"] .saved-toast {
+  background: rgba(5, 150, 105, 0.1);
+  border-color: rgba(5, 150, 105, 0.25);
+  box-shadow: 0 8px 24px rgba(5, 150, 105, 0.1);
+}
