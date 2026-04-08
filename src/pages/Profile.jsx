@@ -191,7 +191,7 @@ export default function Profile() {
                     <div className="mission-row__info">
                       <span className="mission-row__title">{m.title}</span>
                       <span className="mission-row__diff">
-                        {m.difficulty === 0 ? 'Free Play' : '★'.repeat(m.difficulty) + '☆'.repeat(4 - m.difficulty)}
+                        {m.difficulty === 0 ? 'Free Play' : '★'.repeat(Math.min(m.difficulty, 5)) + '☆'.repeat(Math.max(0, 5 - m.difficulty))}
                       </span>
                     </div>
                     <div className="mission-row__reward">

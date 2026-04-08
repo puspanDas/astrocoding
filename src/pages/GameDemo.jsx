@@ -384,7 +384,7 @@ export default function GameDemo() {
                       <span className="mission-item__title">{m.title}</span>
                       {m.difficulty > 0 && (
                         <span className="mission-item__diff">
-                          {'★'.repeat(m.difficulty)}{'☆'.repeat(4 - m.difficulty)}
+                          {'★'.repeat(Math.min(m.difficulty, 5))}{'☆'.repeat(Math.max(0, 5 - m.difficulty))}
                         </span>
                       )}
                       {m.difficulty === 0 && (
@@ -590,7 +590,7 @@ export default function GameDemo() {
                 height="100%"
                 key={`editor-${currentMission}-${language}-${resetKey}`}
                 defaultLanguage={language === 'cpp' ? 'cpp' : language}
-                defaultValue={getActiveCode()}
+                defaultValue={code}
                 onChange={(val) => setCode(val || '')}
                 theme="vs-dark"
                 options={{
