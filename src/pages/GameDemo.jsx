@@ -281,7 +281,7 @@ export default function GameDemo() {
       <div className="game-demo__topbar">
         <div className="game-demo__mission-info">
           <Rocket size={16} className="game-demo__mission-icon" />
-          <span className="game-demo__mission-title">{mission.icon} {mission.title}</span>
+          <span className="game-demo__mission-title">{mission.icon || '🚀'} {mission.title || 'Untitled Mission'}</span>
           {mission.difficulty > 0 && (
             <div className="game-demo__difficulty">
               {Array.from({ length: mission.difficulty }, (_, i) => (
@@ -379,9 +379,9 @@ export default function GameDemo() {
                     className={`mission-item ${currentMission === i ? 'mission-item--active' : ''} ${completedMissions.has(m.id) ? 'mission-item--complete' : ''}`}
                     onClick={() => handleMissionChange(i)}
                   >
-                    <span className="mission-item__icon">{m.icon}</span>
+                    <span className="mission-item__icon">{m.icon || '🚀'}</span>
                     <div className="mission-item__info">
-                      <span className="mission-item__title">{m.title}</span>
+                      <span className="mission-item__title">{m.title || 'Untitled'}</span>
                       {m.difficulty > 0 && (
                         <span className="mission-item__diff">
                           {'★'.repeat(Math.min(m.difficulty, 5))}{'☆'.repeat(Math.max(0, 5 - m.difficulty))}
@@ -479,7 +479,7 @@ export default function GameDemo() {
                 <button
                   className="editor-btn editor-btn--hint"
                   onClick={handleShowHint}
-                  disabled={hintIndex >= mission.hints.length - 1}
+                  disabled={!mission.hints || hintIndex >= mission.hints.length - 1}
                   title="Get a hint"
                 >
                   <Lightbulb size={14} />

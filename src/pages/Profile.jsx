@@ -187,9 +187,9 @@ export default function Profile() {
                 const done = completedMissions.includes(m.id)
                 return (
                   <div key={m.id} className={`mission-row ${done ? 'mission-row--done' : ''}`}>
-                    <span className="mission-row__icon">{m.icon}</span>
+                    <span className="mission-row__icon">{m.icon || '🚀'}</span>
                     <div className="mission-row__info">
-                      <span className="mission-row__title">{m.title}</span>
+                      <span className="mission-row__title">{m.title || 'Untitled'}</span>
                       <span className="mission-row__diff">
                         {m.difficulty === 0 ? 'Free Play' : '★'.repeat(Math.min(m.difficulty, 5)) + '☆'.repeat(Math.max(0, 5 - m.difficulty))}
                       </span>
@@ -258,8 +258,8 @@ export default function Profile() {
             ) : (
               missions.filter(m => completedMissions.includes(m.id)).map(m => (
                 <div key={m.id} className="reward-row">
-                  <span className="reward-row__icon">{m.icon}</span>
-                  <span className="reward-row__title">{m.title}</span>
+                  <span className="reward-row__icon">{m.icon || '🚀'}</span>
+                  <span className="reward-row__title">{m.title || 'Untitled'}</span>
                   <div className="reward-row__items">
                     <span className="reward-chip reward-chip--scrap"><Gem size={12} /> {m.reward.scrap} Scrap</span>
                     {m.reward.cores > 0 && (

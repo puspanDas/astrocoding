@@ -76,7 +76,12 @@ export function transpileToJS(code, language) {
     js = js.replace(/\bNone\b/g, 'null')
     js = js.replace(/\bprint\s*\(/g, 'console.log(')
 
-    // 6. Add closing braces based on indentation
+    // 6. Python builtins → JS equivalents
+    js = js.replace(/\bstr\s*\(/g, 'String(')
+    js = js.replace(/\bint\s*\(/g, 'parseInt(')
+    js = js.replace(/\bfloat\s*\(/g, 'parseFloat(')
+
+    // 7. Add closing braces based on indentation
     const lines = js.split('\n')
     const out = []
     const indentStack = [0]

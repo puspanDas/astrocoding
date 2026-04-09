@@ -1000,6 +1000,7 @@ void execute() {
   },
   {
     id: 'free-play',
+    title: 'Free Play',
     description: 'No rules! Experiment freely with all commands.',
     difficulty: 0,
     icon: '🎮',
