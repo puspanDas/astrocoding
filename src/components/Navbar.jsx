@@ -40,6 +40,7 @@ export default function Navbar() {
           <a href="/#factions" className="navbar__link">Factions</a>
           <a href="/#engine" className="navbar__link">Engine</a>
           <a href="/#personas" className="navbar__link">For Everyone</a>
+          <Link to="/leaderboard" className="navbar__link">Hall of Fame</Link>
           <Link to="/sandbox" className="navbar__link">Sandbox IDE</Link>
           <Link to="/profile" className="navbar__link navbar__link--profile">
             <User size={14} />
