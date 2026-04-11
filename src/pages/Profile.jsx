@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { Gem, Trophy, Rocket, Target, Code, Star, Zap, Award, CheckCircle, Lock } from 'lucide-react'
 import StarField from '../components/StarField'
 import missions from '../engine/missions'
+import DailyChallenge from '../components/DailyChallenge'
 import './Profile.css'
 
 const LANGUAGES = {
@@ -148,6 +149,9 @@ export default function Profile() {
             </motion.div>
           ))}
         </div>
+
+        {/* Daily Mission */}
+        <DailyChallenge />
 
         {/* Progress Bar */}
         <motion.div

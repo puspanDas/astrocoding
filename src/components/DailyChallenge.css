@@ -1,0 +1,207 @@
+.daily-challenge {
+  display: flex;
+  margin-bottom: 30px;
+  overflow: hidden;
+  position: relative;
+  border-left: 4px solid var(--nebula-blue);
+}
+
+.daily-challenge::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), transparent 40%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.daily-challenge__sidebar {
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(10, 14, 39, 0.4);
+  border-right: 1px solid var(--glass-border);
+  position: relative;
+  z-index: 1;
+  min-width: 120px;
+}
+
+.daily-challenge__icon-wrapper {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--nebula-blue), var(--nebula-purple));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.daily-challenge__pulse {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border-radius: 50%;
+  border: 2px solid var(--nebula-blue);
+  opacity: 0;
+  animation: dailyChallengePulse 2s infinite ease-out;
+}
+
+@keyframes dailyChallengePulse {
+  0% { transform: scale(0.9); opacity: 0.8; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+.daily-challenge__badge {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--nebula-blue-light);
+  letter-spacing: 0.05em;
+  text-align: center;
+}
+
+.daily-challenge__content {
+  padding: 24px;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.daily-challenge__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.daily-challenge__title {
+  font-size: 1.2rem;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.daily-challenge__timer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--warning);
+  background: rgba(245, 158, 11, 0.1);
+  padding: 4px 10px;
+  border-radius: 99px;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.daily-challenge__timer strong {
+  margin-left: 2px;
+}
+
+.daily-challenge__desc {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.daily-challenge__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.daily-challenge__tag {
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tag--diff {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+}
+
+.tag--lang {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  color: var(--python-secondary);
+}
+
+.daily-challenge__rewards {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--success);
+  margin-left: auto;
+}
+
+.daily-challenge__action {
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+
+.daily-challenge__btn {
+  padding: 12px 24px;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .daily-challenge {
+    flex-direction: column;
+  }
+  
+  .daily-challenge__sidebar {
+    border-right: none;
+    border-bottom: 1px solid var(--glass-border);
+    flex-direction: row;
+    padding: 16px;
+    justify-content: flex-start;
+  }
+  
+  .daily-challenge__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .daily-challenge__meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .daily-challenge__rewards {
+    margin-left: 0;
+  }
+  
+  .daily-challenge__action {
+    padding-top: 0;
+  }
+  
+  .daily-challenge__btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
