@@ -41,7 +41,7 @@
 }
 
 .hero__title {
-  font-size: clamp(2.5rem, 7vw, 5rem);
+  font-size: clamp(2rem, 7vw, 4.5rem);
   font-weight: 900;
   line-height: 1.1;
   margin-bottom: 24px;
@@ -76,6 +76,7 @@
   justify-content: center;
   gap: 32px;
   margin-top: 60px;
+  flex-wrap: wrap;
 }
 
 .hero__stat {
@@ -227,6 +228,7 @@
   align-self: center;
   text-decoration: none;
   box-shadow: 0 4px 15px color-mix(in srgb, var(--mode-color) 30%, transparent);
+  white-space: nowrap;
 }
 
 .engine-demo__try-btn:hover {
@@ -414,6 +416,7 @@
   position: relative;
   padding: 16px 40px;
   font-size: 1.05rem;
+  white-space: nowrap;
 }
 
 /* ===== FOOTER ===== */

@@ -663,6 +663,7 @@
   max-height: 280px;
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
 }
 
 .game-demo__chat--collapsed {
@@ -727,6 +728,7 @@
 
   .editor-header {
     flex-wrap: wrap;
+    gap: 12px;
   }
 
   .game-demo__concepts {

@@ -147,6 +147,7 @@
 .leaderboard-tabs {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .leaderboard-tab {
@@ -268,8 +269,9 @@
   width: 120px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   font-weight: 600;
+  line-height: 1;
 }
 
 .col-scrap { color: var(--nebula-purple-light); }

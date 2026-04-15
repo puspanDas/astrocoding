@@ -85,6 +85,7 @@
   display: flex;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   background: rgba(0, 0, 0, 0.2);
+  flex-wrap: wrap;
 }
 
 .editor-tab {
@@ -404,6 +405,7 @@
   font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.2s;
+  margin-right: 16px;
 }
 
 .sandbox-console__clear:hover {
@@ -498,3 +500,20 @@
 [data-theme="light"] .sandbox-console__log--log .sandbox-console__log-content {
   color: #333;
 }
+
+@media (max-width: 768px) {
+  .sandbox-demo__topbar {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 12px;
+    gap: 12px;
+  }
+  .sandbox-demo__main {
+    flex-direction: column;
+  }
+  .sandbox-demo__editor-panel,
+  .sandbox-demo__preview-panel {
+    min-width: 100%;
+  }
+}
+
