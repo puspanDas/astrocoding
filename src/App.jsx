@@ -6,6 +6,7 @@ import GameDemo from './pages/GameDemo'
 import Sandbox from './pages/Sandbox'
 import Profile from './pages/Profile'
 import Leaderboard from './pages/Leaderboard'
+import SystemDesign from './pages/SystemDesign'
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path="/sandbox" element={<Sandbox />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/system-design" element={<SystemDesign />} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>

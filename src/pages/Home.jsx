@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   Rocket, Code2, MonitorPlay, Timer, Languages, Bot,
-  Users, Gamepad2, Zap, ChevronRight
+  Users, Gamepad2, Zap, ChevronRight, Cpu
 } from 'lucide-react'
 import StarField from '../components/StarField'
 import FeatureCard from '../components/FeatureCard'
@@ -16,6 +16,7 @@ const features = [
   { icon: <Bot size={28} />, title: 'Mentor AI Droid', description: 'An age-adaptive AI companion that explains errors in plain English and gives contextual hints — never the answer.' },
   { icon: <Users size={28} />, title: 'Co-Op Missions', description: 'Team up across ages & skill levels. Grandpa writes Java logic while the kid uses drag-and-drop Python!' },
   { icon: <Zap size={28} />, title: 'Adaptive Engine', description: 'Three UI modes scale from drag-and-drop blocks to full IDE — the same puzzle, tailored to your level.' },
+  { icon: <Cpu size={28} />, title: 'System Design Lab', description: 'Drag-and-drop architecture components to design real systems — from personal blogs to Netflix-scale platforms.' },
 ]
 
 const factions = [
