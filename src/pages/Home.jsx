@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   Rocket, Code2, MonitorPlay, Timer, Languages, Bot,
-  Users, Gamepad2, Zap, ChevronRight, Star
+  Users, Gamepad2, Zap, ChevronRight
 } from 'lucide-react'
 import StarField from '../components/StarField'
 import FeatureCard from '../components/FeatureCard'
@@ -57,14 +57,7 @@ export default function Home() {
       <section className="hero">
         <div className="hero__nebula" />
         <div className="hero__content container">
-          <motion.div
-            className="hero__badge"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <Star size={14} /> Now in Early Access
-          </motion.div>
+
 
           <motion.h1
             className="hero__title"
