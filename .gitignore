@@ -26,6 +26,7 @@ dist-ssr
 # Scripts
 git_push.py
 run_app.py
+Start_AstroCode.bat
 
 # Tests
 test.py

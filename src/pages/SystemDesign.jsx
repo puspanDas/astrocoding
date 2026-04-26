@@ -291,8 +291,8 @@ export default function SystemDesign() {
     const result = validateDesign(scenario, placedComponents, connections)
     setValidationResult(result)
 
+    setShowSuccess(true)
     if (result.passed) {
-      setShowSuccess(true)
       if (!completedScenarios.has(scenario.id)) {
         setCompletedScenarios(prev => new Set([...prev, scenario.id]))
         setTotalScore(prev => prev + result.score)
@@ -845,7 +845,7 @@ export default function SystemDesign() {
         </div>
       </div>
 
-      {/* ===== SUCCESS OVERLAY ===== */}
+      {/* ===== RESULT OVERLAY ===== */}
       <AnimatePresence>
         {showSuccess && validationResult && (
           <motion.div
@@ -855,38 +855,79 @@ export default function SystemDesign() {
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="sysdesign__success-card"
+              className={`sysdesign__success-card ${!validationResult.passed ? 'sysdesign__success-card--failed' : ''}`}
               initial={{ scale: 0.5, y: 30 }}
               animate={{ scale: 1, y: 0 }}
               transition={{ type: 'spring', damping: 12 }}
             >
-              <div className="sysdesign__success-emoji">🏆</div>
-              <h3>Architecture Approved!</h3>
-              <p>{scenario.successMessage}</p>
-              <div className="sysdesign__success-score">
-                <Award size={18} />
-                <span>{validationResult.score} / {validationResult.maxScore === Infinity ? '∞' : validationResult.maxScore} pts</span>
-              </div>
-              <div className="sysdesign__success-actions">
-                {currentScenario < scenarios.length - 1 && (
-                  <button
-                    className="btn-primary"
-                    onClick={() => {
-                      setShowSuccess(false)
-                      handleScenarioChange(currentScenario + 1)
-                    }}
-                  >
-                    <span>Next Scenario</span>
-                    <ChevronRight size={16} />
-                  </button>
-                )}
-                <button
-                  className="btn-secondary"
-                  onClick={() => setShowSuccess(false)}
-                >
-                  Keep Designing
-                </button>
-              </div>
+              {validationResult.passed ? (
+                <>
+                  <div className="sysdesign__success-emoji">🏆</div>
+                  <h3>Architecture Approved!</h3>
+                  <p>{scenario.successMessage}</p>
+
+                  <div className="sysdesign__tech-insights">
+                    <div className="sysdesign__tech-insight-item">
+                      <strong>💻 Suggested Tech Stack:</strong> {scenario.techStack || 'Any standard stack.'}
+                    </div>
+                    <div className="sysdesign__tech-insight-item">
+                      <strong>⏱️ Time & Space Complexity:</strong> {scenario.complexity || 'O(1) optimal setup.'}
+                    </div>
+                  </div>
+
+                  <div className="sysdesign__success-score">
+                    <Award size={18} />
+                    <span>{validationResult.score} / {validationResult.maxScore === Infinity ? '∞' : validationResult.maxScore} pts</span>
+                  </div>
+                  <div className="sysdesign__success-actions">
+                    {currentScenario < scenarios.length - 1 && (
+                      <button
+                        className="btn-primary"
+                        onClick={() => {
+                          setShowSuccess(false)
+                          handleScenarioChange(currentScenario + 1)
+                        }}
+                      >
+                        <span>Next Scenario</span>
+                        <ChevronRight size={16} />
+                      </button>
+                    )}
+                    <button
+                      className="btn-secondary"
+                      onClick={() => setShowSuccess(false)}
+                    >
+                      Keep Designing
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="sysdesign__success-emoji">🚧</div>
+                  <h3>Needs Modification</h3>
+                  <p>{scenario.failureMessage || 'Your architecture is missing some core requirements.'}</p>
+                  
+                  <div className="sysdesign__missing-reqs">
+                    <strong>Missing Requirements:</strong>
+                    <ul>
+                      {validationResult.checklist
+                        .filter(item => item.required && !item.met)
+                        .map((item, idx) => (
+                          <li key={idx}>❌ {item.isConnection ? '🔗 ' : ''}{item.label}</li>
+                        ))}
+                    </ul>
+                  </div>
+
+                  <div className="sysdesign__success-actions">
+                    <button
+                      className="btn-primary"
+                      onClick={() => setShowSuccess(false)}
+                    >
+                      <span>Fix Architecture</span>
+                      <RotateCcw size={16} />
+                    </button>
+                  </div>
+                </>
+              )}
             </motion.div>
           </motion.div>
         )}

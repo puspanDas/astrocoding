@@ -226,6 +226,9 @@ export const scenarios = [
       ['web-client', 'server'],
       ['server', 'sql-db'],
     ],
+    techStack: 'Languages: Node.js, Python, or Ruby. Database: PostgreSQL or MySQL.',
+    complexity: 'Time: O(1) for direct lookups, O(log N) for complex queries. Space: O(N) where N is number of articles.',
+    failureMessage: 'Your blog architecture is missing essential components. Ensure you have a client, a server, and a database to store articles.',
     scoring: {
       basePoints: 100,
       bonusComponents: { 'cdn': 25, 'cache': 30, 'dns': 15 },
@@ -250,6 +253,9 @@ export const scenarios = [
       ['server', 'sql-db'],
       ['server', 'cache'],
     ],
+    techStack: 'Languages: Go or Rust for high throughput. DB: PostgreSQL. Cache: Redis.',
+    complexity: 'Time: O(1) for cache reads (redirects). Space: O(N) for URLs, mostly handled by the DB.',
+    failureMessage: 'Your URL shortener is incomplete. Remember that fast redirects require a Cache in addition to a Database.',
     scoring: {
       basePoints: 200,
       bonusComponents: { 'load-balancer': 35, 'cdn': 20, 'monitoring': 25 },
@@ -275,6 +281,9 @@ export const scenarios = [
       ['server', 'sql-db'],
       ['server', 'message-queue'],
     ],
+    techStack: 'Languages: Erlang, Elixir, or Node.js. DB: PostgreSQL + Redis. Message Queue: RabbitMQ.',
+    complexity: 'Time: O(1) for message delivery via WebSockets. Space: O(N*M) where N is users and M is messages.',
+    failureMessage: 'Your chat app is missing real-time components. Make sure to use WebSockets for connections and a Message Queue for async processing.',
     scoring: {
       basePoints: 350,
       bonusComponents: { 'cache': 30, 'load-balancer': 35, 'nosql-db': 30, 'mobile-client': 20 },
@@ -304,6 +313,9 @@ export const scenarios = [
       ['microservice', 'cache'],
       ['microservice', 'message-queue'],
     ],
+    techStack: 'Languages: Java or Go. Gateway: Kong/Nginx. DB: PostgreSQL. Queue: Kafka/SQS.',
+    complexity: 'Time: O(1) for cached catalog reads. Async processing handles slow writes. Space: O(P+U) for products and users.',
+    failureMessage: 'Your e-commerce platform needs more robust architecture. Ensure you have an API Gateway routing to Microservices, with Load Balancing and Caching.',
     scoring: {
       basePoints: 500,
       bonusComponents: { 'nosql-db': 30, 'monitoring': 35, 'event-stream': 40, 'mobile-client': 25 },
@@ -336,6 +348,9 @@ export const scenarios = [
       ['microservice', 'message-queue'],
       ['message-queue', 'event-stream'],
     ],
+    techStack: 'Languages: C++/Rust (transcoding), Go/Node (API). Storage: AWS S3. Stream: Kafka.',
+    complexity: 'Time: Video delivery is bounded by network. Processing is O(S) where S is video size. Space: O(V*R) for videos and resolutions.',
+    failureMessage: 'Your video platform is missing heavy data handling components. Ensure Object Storage is used for videos, and a CDN for delivery.',
     scoring: {
       basePoints: 750,
       bonusComponents: { 'nosql-db': 35, 'monitoring': 40, 'logging': 30, 'dns': 25, 'mobile-client': 30, 'serverless': 40 },
@@ -367,6 +382,9 @@ export const scenarios = [
       ['web-client', 'server'],
       ['server', 'sql-db'],
     ],
+    techStack: 'Languages: Ruby on Rails, Django, or Laravel. DB: PostgreSQL.',
+    complexity: 'Time: O(1) mostly. Space: O(U+D) where U is users, D is data.',
+    failureMessage: 'Even an MVP needs a foundation. Make sure you have a Client, Server, and a SQL Database.',
     scoring: {
       basePoints: 150,
       bonusComponents: { 'dns': 20, 'monitoring': 25 },
@@ -396,6 +414,9 @@ export const scenarios = [
       ['web-client', 'server'],
       ['server', 'sql-db'],
     ],
+    techStack: 'Same monolithic stack, adding Cloudflare (CDN/DNS) and scaling up the DB instance.',
+    complexity: 'Time: O(1) for static assets via CDN. Server handles dynamic logic only.',
+    failureMessage: 'To handle 1K users effectively, you need to offload static assets to a CDN and use DNS for proper routing.',
     scoring: {
       basePoints: 300,
       bonusComponents: { 'monitoring': 25, 'object-storage': 30 },
@@ -427,6 +448,9 @@ export const scenarios = [
       ['server', 'sql-db'],
       ['server', 'cache'],
     ],
+    techStack: 'Load Balancer: AWS ALB/Nginx. Cache: Redis. Monolithic servers scaled horizontally.',
+    complexity: 'Time: O(1) for most read queries due to Cache. DB writes are still O(log N).',
+    failureMessage: 'For 10K users, a single server will crash. You need a Load Balancer and a Cache to reduce database strain.',
     scoring: {
       basePoints: 400,
       bonusComponents: { 'monitoring': 30, 'logging': 25, 'object-storage': 25 },
@@ -461,6 +485,9 @@ export const scenarios = [
       ['microservice', 'cache'],
       ['microservice', 'message-queue'],
     ],
+    techStack: 'Microservices in Go/Java. API Gateway: Kong. Queue: RabbitMQ. DB: Postgres + MongoDB.',
+    complexity: 'Time: Highly concurrent. Microservices allow O(1) scaling of specific bottlenecks.',
+    failureMessage: 'At 100K users, a monolith is a bottleneck. You must use an API Gateway routing to Microservices, plus a Message Queue for async tasks.',
     scoring: {
       basePoints: 550,
       bonusComponents: { 'dns': 20, 'monitoring': 35, 'logging': 30, 'object-storage': 25, 'mobile-client': 20 },
@@ -501,6 +528,9 @@ export const scenarios = [
       ['microservice', 'event-stream'],
       ['monitoring', 'server'],
     ],
+    techStack: 'Event Stream: Apache Kafka. Monitoring: Prometheus & Grafana. Multi-region deployments.',
+    complexity: 'Data flows asynchronously. Eventual consistency is common to maintain O(1) perception to users.',
+    failureMessage: '1 Million users require Mobile support, Event Streams for data pipelines, and strict Monitoring to detect failures early.',
     scoring: {
       basePoints: 700,
       bonusComponents: { 'logging': 40, 'object-storage': 35, 'websocket': 40, 'serverless': 35 },
@@ -553,6 +583,9 @@ export const scenarios = [
       ['web-client', 'websocket'],
       ['websocket', 'server'],
     ],
+    techStack: 'Cloud-native hyperscale. AWS/GCP managed services. Kubernetes. Distributed Tracing.',
+    complexity: 'P99 latency must be under 200ms. O(1) scaling via auto-scaling groups and global CDNs.',
+    failureMessage: 'Hyperscale means EVERYTHING is needed. You missed some core infrastructure required to handle petabytes of data and 100K+ RPS.',
     scoring: {
       basePoints: 900,
       bonusComponents: {},
@@ -575,6 +608,9 @@ export const scenarios = [
     ],
     requiredComponents: [],
     requiredConnections: [],
+    techStack: 'Any technology you prefer!',
+    complexity: 'Depends on what you build.',
+    failureMessage: 'This is free mode, so you cannot fail!',
     scoring: {
       basePoints: 0,
       bonusComponents: {},
