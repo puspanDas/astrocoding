@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Cpu, ChevronRight, CheckCircle, Circle, Sparkles,
   Lightbulb, Trash2, Link2, RotateCcw, Send, Award,
-  Target, MousePointer2, X, Play, Pause, Square, SkipForward
+  Target, MousePointer2, X, Play, Pause, Square, SkipForward,
+  Users, TrendingUp
 } from 'lucide-react'
 import StarField from '../components/StarField'
 import {
@@ -366,30 +367,96 @@ export default function SystemDesign() {
                 <span>Scenarios</span>
               </div>
               <div className="sysdesign__sidebar-list">
-                {scenarios.map((s, i) => (
-                  <button
-                    key={s.id}
-                    className={`sysdesign__scenario-item ${currentScenario === i ? 'sysdesign__scenario-item--active' : ''} ${completedScenarios.has(s.id) ? 'sysdesign__scenario-item--complete' : ''}`}
-                    onClick={() => handleScenarioChange(i)}
-                  >
-                    <span className="sysdesign__scenario-icon">{s.icon}</span>
-                    <div className="sysdesign__scenario-info">
-                      <span className="sysdesign__scenario-title">{s.title}</span>
-                      {s.difficulty > 0 ? (
-                        <span className="sysdesign__scenario-diff">
-                          {'★'.repeat(Math.min(s.difficulty, 5))}{'☆'.repeat(Math.max(0, 5 - s.difficulty))}
-                        </span>
-                      ) : (
-                        <span className="sysdesign__scenario-diff free">Sandbox</span>
+                {/* Section: Design Challenges */}
+                <div className="sysdesign__sidebar-section">
+                  <div className="sysdesign__sidebar-section-label">
+                    <Target size={11} />
+                    <span>Design Challenges</span>
+                  </div>
+                </div>
+                {scenarios.filter(s => !s.track).map((s) => {
+                  const i = scenarios.indexOf(s)
+                  return (
+                    <button
+                      key={s.id}
+                      className={`sysdesign__scenario-item ${currentScenario === i ? 'sysdesign__scenario-item--active' : ''} ${completedScenarios.has(s.id) ? 'sysdesign__scenario-item--complete' : ''}`}
+                      onClick={() => handleScenarioChange(i)}
+                    >
+                      <span className="sysdesign__scenario-icon">{s.icon}</span>
+                      <div className="sysdesign__scenario-info">
+                        <span className="sysdesign__scenario-title">{s.title}</span>
+                        {s.difficulty > 0 ? (
+                          <span className="sysdesign__scenario-diff">
+                            {'★'.repeat(Math.min(s.difficulty, 5))}{'☆'.repeat(Math.max(0, 5 - s.difficulty))}
+                          </span>
+                        ) : (
+                          <span className="sysdesign__scenario-diff free">Sandbox</span>
+                        )}
+                      </div>
+                      {completedScenarios.has(s.id) && (
+                        <CheckCircle size={14} className="sysdesign__scenario-check" />
                       )}
-                    </div>
-                    {completedScenarios.has(s.id) && (
-                      <CheckCircle size={14} className="sysdesign__scenario-check" />
-                    )}
-                  </button>
-                ))}
+                    </button>
+                  )
+                })}
+
+                {/* Section: Scaling Journey */}
+                <div className="sysdesign__sidebar-section sysdesign__sidebar-section--scaling">
+                  <div className="sysdesign__sidebar-section-label">
+                    <TrendingUp size={11} />
+                    <span>Scaling Journey</span>
+                  </div>
+                  <div className="sysdesign__scaling-progress">
+                    {(() => {
+                      const scalingScenarios = scenarios.filter(s => s.track === 'scaling')
+                      const completed = scalingScenarios.filter(s => completedScenarios.has(s.id)).length
+                      const total = scalingScenarios.length
+                      return (
+                        <>
+                          <div className="sysdesign__scaling-progress-bar">
+                            <div
+                              className="sysdesign__scaling-progress-fill"
+                              style={{ width: `${total > 0 ? (completed / total) * 100 : 0}%` }}
+                            />
+                          </div>
+                          <span className="sysdesign__scaling-progress-text">{completed}/{total}</span>
+                        </>
+                      )
+                    })()}
+                  </div>
+                </div>
+                {scenarios.filter(s => s.track === 'scaling').map((s) => {
+                  const i = scenarios.indexOf(s)
+                  return (
+                    <button
+                      key={s.id}
+                      className={`sysdesign__scenario-item sysdesign__scenario-item--scaling ${currentScenario === i ? 'sysdesign__scenario-item--active' : ''} ${completedScenarios.has(s.id) ? 'sysdesign__scenario-item--complete' : ''}`}
+                      onClick={() => handleScenarioChange(i)}
+                    >
+                      <span className="sysdesign__scenario-icon">{s.icon}</span>
+                      <div className="sysdesign__scenario-info">
+                        <span className="sysdesign__scenario-title">{s.title}</span>
+                        <span className="sysdesign__scenario-scale-badge">
+                          <Users size={9} />
+                          <span>{s.scale}</span>
+                        </span>
+                      </div>
+                      {completedScenarios.has(s.id) && (
+                        <CheckCircle size={14} className="sysdesign__scenario-check" />
+                      )}
+                    </button>
+                  )
+                })}
               </div>
               <div className="sysdesign__sidebar-brief">
+                {scenario.track === 'scaling' && (
+                  <div className="sysdesign__scale-header">
+                    <div className="sysdesign__scale-header-badge">
+                      <Users size={12} />
+                      <span>{scenario.scaleLabel}</span>
+                    </div>
+                  </div>
+                )}
                 <p>{scenario.description}</p>
               </div>
             </motion.div>
