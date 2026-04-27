@@ -875,6 +875,23 @@ export default function SystemDesign() {
                     </div>
                   </div>
 
+                  {scenario.architecturalUpgrades && (
+                    <div className="sysdesign__arch-upgrades">
+                      <h4>{scenario.architecturalUpgrades.title}</h4>
+                      <ol className="sysdesign__arch-upgrades-list">
+                        {scenario.architecturalUpgrades.items.map((item, idx) => (
+                          <li key={idx} className="sysdesign__arch-upgrade-item">
+                            <strong>{item.title}</strong>
+                            <p style={{ whiteSpace: 'pre-wrap' }}>{item.description}</p>
+                          </li>
+                        ))}
+                      </ol>
+                      <p className="sysdesign__arch-upgrades-conclusion">
+                        {scenario.architecturalUpgrades.conclusion}
+                      </p>
+                    </div>
+                  )}
+
                   <div className="sysdesign__success-score">
                     <Award size={18} />
                     <span>{validationResult.score} / {validationResult.maxScore === Infinity ? '∞' : validationResult.maxScore} pts</span>
