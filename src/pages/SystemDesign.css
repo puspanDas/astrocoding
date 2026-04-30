@@ -637,6 +637,100 @@
   color: var(--text-secondary);
 }
 
+/* ===== AI AUTO-ARCHITECT PROMPT ===== */
+.sysdesign__ai-prompt {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 500px;
+  z-index: 30;
+  padding: 0 20px;
+}
+
+.sysdesign__ai-prompt-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(10, 14, 39, 0.85);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  border-radius: 50px;
+  padding: 8px 12px 8px 16px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(168, 85, 247, 0.1);
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.sysdesign__ai-prompt-inner:focus-within {
+  border-color: var(--nebula-purple-light);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(168, 85, 247, 0.3);
+}
+
+.sysdesign__ai-icon {
+  color: var(--nebula-purple-light);
+  flex-shrink: 0;
+  animation: float 3s ease-in-out infinite;
+}
+
+.sysdesign__ai-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-family: inherit;
+  min-width: 0;
+}
+
+.sysdesign__ai-input::placeholder {
+  color: var(--text-muted);
+}
+
+.sysdesign__ai-input:disabled {
+  opacity: 0.6;
+}
+
+.sysdesign__ai-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--nebula-purple-glow);
+  border: none;
+  color: white;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.sysdesign__ai-submit:hover:not(:disabled) {
+  background: var(--nebula-purple-light);
+  transform: scale(1.05);
+}
+
+.sysdesign__ai-submit:disabled {
+  background: rgba(168, 85, 247, 0.2);
+  color: rgba(255, 255, 255, 0.4);
+  cursor: not-allowed;
+}
+
+.sysdesign__spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 /* ===== SIMULATION STYLES ===== */
 
 /* Active component glow during simulation */

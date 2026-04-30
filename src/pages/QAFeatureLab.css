@@ -1,0 +1,84 @@
+.qa-lab {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  background: var(--bg-color);
+  color: var(--text-primary);
+  overflow: hidden;
+  position: relative;
+}
+
+.qa-lab__topbar {
+  height: 60px;
+  background: rgba(10, 14, 39, 0.8);
+  border-bottom: 2px solid #ef4444; /* Red accent for QA */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  backdrop-filter: blur(10px);
+  z-index: 10;
+}
+
+.qa-lab__title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #f87171;
+  text-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+}
+
+.qa-lab__main {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+  z-index: 5;
+}
+
+.qa-lab__editor-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-right: 2px solid rgba(239, 68, 68, 0.3);
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(10px);
+}
+
+.qa-editor-body {
+  border-top: 1px dashed rgba(239, 68, 68, 0.3);
+}
+
+.qa-lab__game-panel {
+  flex: 1.2;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.qa-panel-header {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: #fca5a5;
+  z-index: 10;
+}
+
+.qa-canvas-wrapper {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

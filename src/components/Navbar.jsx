@@ -43,6 +43,7 @@ export default function Navbar() {
           <Link to="/leaderboard" className="navbar__link">Hall of Fame</Link>
           <Link to="/sandbox" className="navbar__link">Sandbox IDE</Link>
           <Link to="/system-design" className="navbar__link">Design Lab</Link>
+          <Link to="/qa-lab" className="navbar__link" style={{ color: '#f87171' }}>QA Lab</Link>
           <Link to="/profile" className="navbar__link navbar__link--profile">
             <User size={14} />
             <span>Profile</span>

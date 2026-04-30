@@ -998,6 +998,7 @@ void execute() {
     successMessage: '🎉 Spectacular mapping! The sector is bright! +160 Scrap!',
     reward: { scrap: 160, cores: 2 },
   },
+
   {
     id: 'free-play',
     title: 'Free Play',

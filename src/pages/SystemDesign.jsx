@@ -4,7 +4,7 @@ import {
   Cpu, ChevronRight, CheckCircle, Circle, Sparkles,
   Lightbulb, Trash2, Link2, RotateCcw, Send, Award,
   Target, MousePointer2, X, Play, Pause, Square, SkipForward,
-  Users, TrendingUp
+  Users, TrendingUp, Download, Wand2
 } from 'lucide-react'
 import StarField from '../components/StarField'
 import {
@@ -47,6 +47,10 @@ export default function SystemDesign() {
       return parseInt(localStorage.getItem('astrocode-sysdesign-score') || '0', 10)
     } catch { return 0 }
   })
+
+  // AI Auto-Architect state
+  const [commandText, setCommandText] = useState('')
+  const [isGenerating, setIsGenerating] = useState(false)
 
   // Simulation state
   const [simulating, setSimulating] = useState(false)
@@ -320,6 +324,153 @@ export default function SystemDesign() {
       setSelectedId(null)
       if (connectMode && connectFrom) setConnectFrom(null)
     }
+  }
+
+  // ——— AI Auto-Architect ———
+  function handleAutoArchitect(e) {
+    e.preventDefault()
+    if (!commandText.trim()) return
+
+    setIsGenerating(true)
+    const lowerCmd = commandText.toLowerCase()
+    
+    // 1. Find matching scenario
+    let bestMatch = null
+    let maxScore = 0
+
+    scenarios.forEach((s, idx) => {
+      let score = 0
+      const titleLower = s.title.toLowerCase()
+      const descLower = s.description.toLowerCase()
+      
+      const words = lowerCmd.split(/\s+/)
+      words.forEach(w => {
+        if (w.length > 2) {
+          if (titleLower.includes(w)) score += 3
+          if (descLower.includes(w)) score += 1
+          if (s.id.includes(w)) score += 2
+        }
+      })
+
+      if (lowerCmd.includes("scale") && s.track === 'scaling') score += 2
+      if (lowerCmd.includes(s.id.replace(/-/g, ' '))) score += 5
+      if (titleLower.includes(lowerCmd)) score += 10
+      
+      if (score > maxScore) {
+        maxScore = score
+        bestMatch = idx
+      }
+    })
+
+    if (bestMatch !== null && maxScore > 0) {
+      setTimeout(() => {
+        handleScenarioChange(bestMatch)
+        const targetScenario = scenarios[bestMatch]
+
+        if (targetScenario.requiredComponents && targetScenario.requiredComponents.length > 0) {
+          const categoryMap = {}
+          COMPONENT_CATEGORIES.forEach((cat, catIdx) => {
+            cat.components.forEach(comp => {
+              categoryMap[comp.type] = catIdx
+            })
+          })
+
+          const grouped = {}
+          targetScenario.requiredComponents.forEach(type => {
+            const catIdx = categoryMap[type] !== undefined ? categoryMap[type] : 99
+            if (!grouped[catIdx]) grouped[catIdx] = []
+            grouped[catIdx].push(type)
+          })
+
+          const newComponents = []
+          let tempNextId = nextComponentId
+          
+          const sortedKeys = Object.keys(grouped).map(Number).sort((a, b) => a - b)
+          
+          sortedKeys.forEach((catIdx, colIdx) => {
+            const types = grouped[catIdx]
+            types.forEach((type, rowIdx) => {
+              newComponents.push({
+                id: `comp-${tempNextId++}`,
+                type,
+                x: 80 + colIdx * 180,
+                y: 80 + rowIdx * 120
+              })
+            })
+          })
+          nextComponentId = tempNextId
+
+          const newConnections = []
+          if (targetScenario.requiredConnections) {
+            targetScenario.requiredConnections.forEach(([fromType, toType]) => {
+              const fromComp = newComponents.find(c => c.type === fromType)
+              const toComp = newComponents.find(c => c.type === toType)
+              if (fromComp && toComp) {
+                newConnections.push({ from: fromComp.id, to: toComp.id })
+              }
+            })
+          }
+
+          setPlacedComponents(newComponents)
+          setConnections(newConnections)
+        }
+        
+        setIsGenerating(false)
+        setCommandText('')
+      }, 600)
+    } else {
+      setIsGenerating(false)
+      alert("No matching architectural blueprint found for that prompt.")
+    }
+  }
+
+  // ——— Export to TXT ———
+  function handleExportTxt() {
+    if (placedComponents.length === 0) return
+
+    let content = `System Design Architecture Export\n`
+    content += `===================================\n\n`
+    content += `Scenario: ${scenario.title}\n`
+    if (scenario.description) {
+      content += `Description: ${scenario.description}\n`
+    }
+    content += `\n--- COMPONENTS ---\n`
+    placedComponents.forEach((comp, idx) => {
+      const def = COMPONENT_MAP[comp.type]
+      if (def) {
+        content += `${idx + 1}. [${def.label}] - ${def.desc}\n`
+      }
+    })
+    
+    content += `\n--- CONNECTIONS & DATA FLOW ---\n`
+    const steps = generateFlowSteps(placedComponents, connections)
+    if (steps.length > 0) {
+      steps.forEach((step, idx) => {
+        content += `Step ${idx + 1}: ${step.description}\n`
+      })
+    } else if (connections.length > 0) {
+      connections.forEach((conn, idx) => {
+        const fromComp = placedComponents.find(c => c.id === conn.from)
+        const toComp = placedComponents.find(c => c.id === conn.to)
+        if (fromComp && toComp) {
+          const fromDef = COMPONENT_MAP[fromComp.type]
+          const toDef = COMPONENT_MAP[toComp.type]
+          content += `${idx + 1}. ${fromDef?.label || 'Unknown'} -> ${toDef?.label || 'Unknown'}\n`
+        }
+      })
+    } else {
+      content += `No connections established yet.\n`
+    }
+
+    const blob = new Blob([content], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `system_design_${scenario.id}.txt`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
   }
 
   return (
@@ -612,6 +763,28 @@ export default function SystemDesign() {
                 )
               })}
             </div>
+
+            {/* AI Auto-Architect Prompt */}
+            <form className="sysdesign__ai-prompt" onSubmit={handleAutoArchitect}>
+              <div className="sysdesign__ai-prompt-inner">
+                <Wand2 size={16} className="sysdesign__ai-icon" />
+                <input
+                  type="text"
+                  className="sysdesign__ai-input"
+                  placeholder="Ask AI to design an architecture... (e.g. 'e-commerce' or 'scale to 1m')"
+                  value={commandText}
+                  onChange={(e) => setCommandText(e.target.value)}
+                  disabled={isGenerating}
+                />
+                <button
+                  type="submit"
+                  className="sysdesign__ai-submit"
+                  disabled={!commandText.trim() || isGenerating}
+                >
+                  {isGenerating ? <div className="sysdesign__spinner" /> : <Send size={14} />}
+                </button>
+              </div>
+            </form>
           </div>
 
           {/* Canvas Toolbar */}
@@ -642,6 +815,15 @@ export default function SystemDesign() {
                 >
                   <Play size={14} />
                   <span>Simulate</span>
+                </button>
+                <button
+                  className="sysdesign__canvas-tool"
+                  onClick={handleExportTxt}
+                  disabled={placedComponents.length === 0}
+                  title="Export architecture to TXT"
+                >
+                  <Download size={14} />
+                  <span>Export</span>
                 </button>
                 <button
                   className="sysdesign__canvas-tool sysdesign__canvas-tool--danger"
