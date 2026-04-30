@@ -39,7 +39,7 @@ export default function Navbar() {
           <a href="/#features" className="navbar__link">Features</a>
           <a href="/#factions" className="navbar__link">Factions</a>
           <a href="/#engine" className="navbar__link">Engine</a>
-          <a href="/#personas" className="navbar__link">For Everyone</a>
+          <a href="/#personas" className="navbar__link">Who It's For</a>
           <Link to="/leaderboard" className="navbar__link">Hall of Fame</Link>
           <Link to="/sandbox" className="navbar__link">Sandbox IDE</Link>
           <Link to="/system-design" className="navbar__link">Design Lab</Link>

@@ -838,19 +838,19 @@
   animation: mode-badge-glow 3s ease-in-out infinite;
 }
 
-.game-demo__mode-badge[data-mode="blueprint"] {
+.game-demo__mode-badge[data-mode="visual"] {
   background: rgba(16, 185, 129, 0.15);
   border: 1px solid rgba(16, 185, 129, 0.3);
   color: var(--python-secondary);
 }
 
-.game-demo__mode-badge[data-mode="scaffold"] {
+.game-demo__mode-badge[data-mode="guided"] {
   background: rgba(245, 158, 11, 0.15);
   border: 1px solid rgba(245, 158, 11, 0.3);
   color: var(--java-secondary);
 }
 
-.game-demo__mode-badge[data-mode="terminal"] {
+.game-demo__mode-badge[data-mode="pro"] {
   background: rgba(239, 68, 68, 0.15);
   border: 1px solid rgba(239, 68, 68, 0.3);
   color: var(--cpp-secondary);

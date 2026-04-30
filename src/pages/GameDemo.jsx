@@ -28,14 +28,14 @@ const LANGUAGES = {
 }
 
 const ENGINE_MODES = {
-  blueprint: { label: 'Blueprint Mode', description: 'Visual block coding for ages 6-9', defaultCoding: 'blocks', showHints: true, showSidebar: true },
-  scaffold:  { label: 'Scaffold Mode',  description: 'Guided coding with hints for ages 10-15', defaultCoding: 'text', showHints: true, showSidebar: true },
-  terminal:  { label: 'Terminal Mode',  description: 'Full IDE for ages 16+', defaultCoding: 'text', showHints: false, showSidebar: false },
+  visual:    { label: 'Visual Mode',    description: 'Visual block coding for beginners', defaultCoding: 'blocks', showHints: true, showSidebar: true },
+  guided:    { label: 'Guided Mode',    description: 'Guided coding with smart hints', defaultCoding: 'text', showHints: true, showSidebar: true },
+  pro:       { label: 'Pro Mode',       description: 'Full professional IDE', defaultCoding: 'text', showHints: false, showSidebar: false },
 }
 
 export default function GameDemo() {
   const [searchParams] = useSearchParams()
-  const urlMode = searchParams.get('mode') // 'blueprint' | 'scaffold' | 'terminal' | null
+  const urlMode = searchParams.get('mode') // 'visual' | 'guided' | 'pro' | null
   const engineMode = ENGINE_MODES[urlMode] || null
 
   // ——— Load persisted progress from localStorage ———

@@ -10,13 +10,13 @@ import FactionCard from '../components/FactionCard'
 import './Home.css'
 
 const features = [
-  { icon: <MonitorPlay size={28} />, title: 'Split-Screen IDE', description: 'Code on the left, watch your robot come alive on the right. Real-time 3D execution of every line you write.' },
+  { icon: <MonitorPlay size={28} />, title: 'Split-Screen IDE', description: 'Code on the left, watch your robot come alive on the right. Real-time execution of every line you write.' },
   { icon: <Timer size={28} />, title: 'Time-Travel Debugger', description: 'Made a mistake? Our debugger rewinds to the exact line that caused the crash and highlights it with a hint.' },
   { icon: <Languages size={28} />, title: '"Translate" Button', description: 'Write in Python, instantly see it in Java or C++. Understand how languages express the same ideas differently.' },
-  { icon: <Bot size={28} />, title: 'Mentor AI Droid', description: 'An age-adaptive AI companion that explains errors in plain English and gives contextual hints — never the answer.' },
-  { icon: <Users size={28} />, title: 'Co-Op Missions', description: 'Team up across ages & skill levels. Grandpa writes Java logic while the kid uses drag-and-drop Python!' },
-  { icon: <Zap size={28} />, title: 'Adaptive Engine', description: 'Three UI modes scale from drag-and-drop blocks to full IDE — the same puzzle, tailored to your level.' },
-  { icon: <Cpu size={28} />, title: 'System Design Lab', description: 'Drag-and-drop architecture components to design real systems — from personal blogs to Netflix-scale platforms.' },
+  { icon: <Bot size={28} />, title: 'AI Mentor', description: 'An intelligent AI companion that explains errors in plain English and gives contextual hints — never the answer.' },
+  { icon: <Users size={28} />, title: 'Co-Op Missions', description: 'Collaborate across skill levels. One partner writes the logic layer while the other handles execution flow.' },
+  { icon: <Zap size={28} />, title: 'Adaptive Engine', description: 'Three UI modes scale from visual blocks to guided templates to a full professional IDE — tailored to your skill level.' },
+  { icon: <Cpu size={28} />, title: 'System Design Lab', description: 'Architect real systems with drag-and-drop components — from personal blogs to Netflix-scale distributed platforms.' },
 ]
 
 const factions = [
@@ -44,9 +44,9 @@ const factions = [
 ]
 
 const personas = [
-  { name: 'Leo', age: 7, emoji: '👦', desc: 'Loves Minecraft. Needs bright colors and instant visual feedback. Learning through drag-and-drop blocks.', mode: 'Blueprint Mode' },
-  { name: 'Maya', age: 15, emoji: '👩‍💻', desc: 'Wants to build real games and apps. Types real code with smart autocomplete guiding the way.', mode: 'Scaffold Mode' },
-  { name: 'Arthur', age: 55, emoji: '👨‍🔬', desc: 'Retired engineer keeping his mind sharp. Full IDE with efficiency points — no childish interfaces.', mode: 'Terminal Mode' },
+  { name: 'Anika', age: 14, emoji: '🎯', desc: 'High school student building her first web app. Uses visual blocks to grasp concepts, then transitions to real code.', mode: 'Visual Mode' },
+  { name: 'Maya', age: 22, emoji: '👩‍💻', desc: 'CS graduate prepping for technical interviews. Guided templates help her focus on problem-solving patterns.', mode: 'Guided Mode' },
+  { name: 'James', age: 45, emoji: '🚀', desc: 'Career changer learning Python for data science. Full IDE with efficiency tracking and no hand-holding.', mode: 'Pro Mode' },
 ]
 
 export default function Home() {
@@ -77,9 +77,9 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
           >
-            Learn Python, Java, and C++ through epic space missions.
-            Program robots, automate space stations, and explore galaxies
-            — whether you're 6 or 60.
+            Master Python, Java, and C++ through real engineering missions.
+            Program robots, architect systems, and solve challenges
+            — whether you're 10 or 60.
           </motion.p>
 
           <motion.div
@@ -110,7 +110,7 @@ export default function Home() {
             </div>
             <div className="hero__stat-divider" />
             <div className="hero__stat">
-              <span className="hero__stat-number">6-60</span>
+              <span className="hero__stat-number">10+</span>
               <span className="hero__stat-label">Age Range</span>
             </div>
             <div className="hero__stat-divider" />
@@ -136,7 +136,7 @@ export default function Home() {
         <div className="container">
           <h2 className="section-title">Powered by Innovation</h2>
           <p className="section-subtitle">
-            Every feature is designed to make coding feel like an epic adventure, not a chore.
+            Every feature is engineered to accelerate your learning through hands-on challenges, not lectures.
           </p>
           <div className="features-grid">
             {features.map((f, i) => (
@@ -151,8 +151,8 @@ export default function Home() {
         <div className="container">
           <h2 className="section-title">The Adaptive Syntax Engine</h2>
           <p className="section-subtitle">
-            Three UI modes that seamlessly scale from visual block-coding
-            to a full professional IDE — all on the same puzzle.
+            Three coding environments that scale with your skill —
+            from visual blocks to a full professional IDE, all on the same puzzle.
           </p>
           <EngineDemo />
         </div>
@@ -177,10 +177,10 @@ export default function Home() {
       {/* ===== PERSONAS ===== */}
       <section id="personas" className="personas-section">
         <div className="container">
-          <h2 className="section-title">Built for Everyone</h2>
+          <h2 className="section-title">Built for Every Learner</h2>
           <p className="section-subtitle">
-            From a 7-year-old Minecraft fan to a 55-year-old retired engineer
-            — AstroCode adapts to every kind of learner.
+            From high school students to seasoned professionals making a career switch
+            — AstroCode adapts to your pace and skill level.
           </p>
           <div className="personas-grid">
             {personas.map((p, i) => (
@@ -236,7 +236,7 @@ export default function Home() {
               <div className="navbar__logo-icon"><Rocket size={18} /></div>
               <span className="navbar__logo-text">AstroCode</span>
             </div>
-            <p className="footer__tagline">Coding for everyone, from 6 to 60.</p>
+            <p className="footer__tagline">Coding for learners of every level.</p>
           </div>
           <div className="footer__links">
             <a href="#features">Features</a>
@@ -261,9 +261,9 @@ function EngineDemo() {
 
   const modes = [
     {
-      id: 'blueprint',
-      label: 'Blueprint',
-      ages: 'Ages 6-9',
+      id: 'visual',
+      label: 'Visual',
+      ages: 'Beginner',
       color: '#10b981',
       code: (
         <div className="engine-demo__blocks">
@@ -272,12 +272,12 @@ function EngineDemo() {
           <div className="code-block code-block--purple" style={{ marginLeft: 24 }}>🔄 rover.turn_right()</div>
         </div>
       ),
-      desc: 'Drag-and-drop blocks that show actual code syntax. Visual, tactile, instant feedback.',
+      desc: 'Snap-together blocks that map to real code syntax. Perfect for building intuition before typing.',
     },
     {
-      id: 'scaffold',
-      label: 'Scaffold',
-      ages: 'Ages 10-15',
+      id: 'guided',
+      label: 'Guided',
+      ages: 'Intermediate',
       color: '#f59e0b',
       code: (
         <div className="engine-demo__code">
@@ -288,12 +288,12 @@ function EngineDemo() {
           </code>
         </div>
       ),
-      desc: 'Real text coding with boilerplate hidden behind "Shields." Smart autocomplete included.',
+      desc: 'Write real code with smart autocomplete and boilerplate handled for you. Focus on the logic.',
     },
     {
-      id: 'terminal',
-      label: 'Terminal',
-      ages: 'Ages 16+',
+      id: 'pro',
+      label: 'Pro',
+      ages: 'Advanced',
       color: '#ef4444',
       code: (
         <div className="engine-demo__code engine-demo__code--terminal">
@@ -308,7 +308,7 @@ function EngineDemo() {
           </code>
         </div>
       ),
-      desc: 'Full professional IDE experience. Write everything from scratch. Bonus points for clean code.',
+      desc: 'Full professional IDE. Write everything from scratch. Earn bonus points for clean, efficient code.',
     },
   ]
 
