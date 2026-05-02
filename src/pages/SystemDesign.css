@@ -337,10 +337,39 @@
 /* ===== COMPONENT PALETTE ===== */
 .sysdesign__palette {
   border-bottom: 1px solid var(--glass-border);
-  background: rgba(10, 14, 39, 0.5);
-  padding: 8px 12px;
+  background: rgba(10, 14, 39, 0.65);
+  padding: 12px 16px;
   overflow-x: auto;
   flex-shrink: 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(108, 60, 224, 0.3) transparent;
+  position: relative;
+}
+
+/* Scroll fade indicator on right */
+.sysdesign__palette::after {
+  content: '';
+  position: sticky;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+  background: linear-gradient(to right, transparent, rgba(10, 14, 39, 0.65));
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.sysdesign__palette::-webkit-scrollbar {
+  height: 5px;
+}
+
+.sysdesign__palette::-webkit-scrollbar-thumb {
+  background: rgba(108, 60, 224, 0.3);
+  border-radius: 4px;
+}
+
+.sysdesign__palette::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .sysdesign__palette-inner {
@@ -376,13 +405,13 @@
 .sysdesign__palette-item {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 6px 10px;
+  gap: 6px;
+  padding: 8px 12px;
   border-radius: var(--radius-sm);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.04);
   color: var(--text-primary);
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   font-weight: 500;
   cursor: grab;
   transition: var(--transition-fast);
@@ -391,10 +420,10 @@
 }
 
 .sysdesign__palette-item:hover {
-  background: rgba(108, 60, 224, 0.12);
-  border-color: rgba(108, 60, 224, 0.3);
+  background: rgba(108, 60, 224, 0.15);
+  border-color: rgba(108, 60, 224, 0.35);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 0 0 8px rgba(108, 60, 224, 0.15);
 }
 
 .sysdesign__palette-item:active {
@@ -410,6 +439,7 @@
 .sysdesign__canvas-area {
   flex: 1;
   display: flex;
+  flex-direction: column;
   position: relative;
   min-height: 0;
 }
@@ -423,7 +453,14 @@
     linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
   background-size: 100% 100%, 40px 40px, 40px 40px;
-  min-height: 500px;
+  min-height: 400px;
+}
+
+.sysdesign__canvas-inner {
+  position: relative;
+  transition: transform 0.15s ease;
+  min-width: 100%;
+  min-height: 100%;
 }
 
 .sysdesign__canvas--drag-over {
@@ -635,6 +672,27 @@
   background: transparent;
   border-color: transparent;
   color: var(--text-secondary);
+}
+
+/* Toolbar divider */
+.sysdesign__toolbar-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--glass-border);
+  margin: 0 4px;
+  flex-shrink: 0;
+}
+
+/* Zoom level display */
+.sysdesign__zoom-level {
+  font-size: 0.68rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--text-muted);
+  min-width: 36px;
+  text-align: center;
+  user-select: none;
+  letter-spacing: 0.03em;
 }
 
 /* ===== AI AUTO-ARCHITECT PROMPT ===== */

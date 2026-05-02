@@ -4,7 +4,7 @@ import {
   Cpu, ChevronRight, CheckCircle, Circle, Sparkles,
   Lightbulb, Trash2, Link2, RotateCcw, Send, Award,
   Target, MousePointer2, X, Play, Pause, Square, SkipForward,
-  Users, TrendingUp, Download, Wand2
+  Users, TrendingUp, Download, Wand2, ZoomIn, ZoomOut, Maximize2
 } from 'lucide-react'
 import StarField from '../components/StarField'
 import {
@@ -61,6 +61,9 @@ export default function SystemDesign() {
   const [simActiveFromId, setSimActiveFromId] = useState(null)
   const [simActiveToId, setSimActiveToId] = useState(null)
   const simTimerRef = useRef(null)
+
+  // Zoom state
+  const [zoomLevel, setZoomLevel] = useState(1)
 
   const canvasRef = useRef(null)
   const scenario = scenarios[currentScenario]
@@ -190,8 +193,8 @@ export default function SystemDesign() {
     const rect = canvasRef.current.getBoundingClientRect()
     const scrollLeft = canvasRef.current.scrollLeft
     const scrollTop = canvasRef.current.scrollTop
-    const x = Math.round((e.clientX - rect.left + scrollLeft - 50) / 40) * 40
-    const y = Math.round((e.clientY - rect.top + scrollTop - 30) / 40) * 40
+    const x = Math.round(((e.clientX - rect.left + scrollLeft) / zoomLevel - 50) / 40) * 40
+    const y = Math.round(((e.clientY - rect.top + scrollTop) / zoomLevel - 30) / 40) * 40
 
     const newComp = {
       id: `comp-${nextComponentId++}`,
@@ -229,8 +232,8 @@ export default function SystemDesign() {
       const scrollLeft = canvasRef.current.scrollLeft
       const scrollTop = canvasRef.current.scrollTop
 
-      const newX = Math.round((moveEvent.clientX - rect.left + scrollLeft - 50) / 40) * 40
-      const newY = Math.round((moveEvent.clientY - rect.top + scrollTop - 30) / 40) * 40
+      const newX = Math.round(((moveEvent.clientX - rect.left + scrollLeft) / zoomLevel - 50) / 40) * 40
+      const newY = Math.round(((moveEvent.clientY - rect.top + scrollTop) / zoomLevel - 30) / 40) * 40
 
       setPlacedComponents(prev =>
         prev.map(c => c.id === compId ? { ...c, x: Math.max(0, newX), y: Math.max(0, newY) } : c)
@@ -288,6 +291,17 @@ export default function SystemDesign() {
     setValidationResult(null)
     setShowSuccess(false)
     setHintIndex(-1)
+  }
+
+  // ——— Zoom controls ———
+  function handleZoomIn() {
+    setZoomLevel(prev => Math.min(prev + 0.15, 2.5))
+  }
+  function handleZoomOut() {
+    setZoomLevel(prev => Math.max(prev - 0.15, 0.3))
+  }
+  function handleZoomReset() {
+    setZoomLevel(1)
   }
 
   // ——— Submit design ———
@@ -660,6 +674,19 @@ export default function SystemDesign() {
               onDrop={handleCanvasDrop}
               onClick={handleCanvasClick}
             >
+              {/* Zoomable inner layer */}
+              <div
+                className="sysdesign__canvas-inner"
+                style={{
+                  transform: `scale(${zoomLevel})`,
+                  transformOrigin: '0 0',
+                  width: `${100 / zoomLevel}%`,
+                  height: `${100 / zoomLevel}%`,
+                  minWidth: `${100 / zoomLevel}%`,
+                  minHeight: `${100 / zoomLevel}%`,
+                  position: 'relative',
+                }}
+              >
               {/* Empty state */}
               {placedComponents.length === 0 && (
                 <div className="sysdesign__canvas-empty">
@@ -762,6 +789,7 @@ export default function SystemDesign() {
                   </motion.div>
                 )
               })}
+              </div> {/* end sysdesign__canvas-inner */}
             </div>
 
             {/* AI Auto-Architect Prompt */}
@@ -832,6 +860,29 @@ export default function SystemDesign() {
                 >
                   <Trash2 size={14} />
                   <span>Clear</span>
+                </button>
+                <div className="sysdesign__toolbar-divider" />
+                <button
+                  className="sysdesign__canvas-tool"
+                  onClick={handleZoomIn}
+                  title="Zoom in"
+                >
+                  <ZoomIn size={14} />
+                </button>
+                <span className="sysdesign__zoom-level">{Math.round(zoomLevel * 100)}%</span>
+                <button
+                  className="sysdesign__canvas-tool"
+                  onClick={handleZoomOut}
+                  title="Zoom out"
+                >
+                  <ZoomOut size={14} />
+                </button>
+                <button
+                  className="sysdesign__canvas-tool"
+                  onClick={handleZoomReset}
+                  title="Reset zoom"
+                >
+                  <Maximize2 size={14} />
                 </button>
               </>
             ) : (
