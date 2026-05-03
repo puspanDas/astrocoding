@@ -845,3 +845,538 @@ export function validateDesign(scenario, placedComponents, connections) {
 
   return { passed, score, maxScore, checklist }
 }
+
+// ——— Design Tier Definitions ———
+const DESIGN_TIERS = [
+  { name: 'Sketch',      minScore: 0,  maxScore: 19, icon: '✏️', color: '#94a3b8', desc: 'A rough sketch — just getting started.' },
+  { name: 'Prototype',   minScore: 20, maxScore: 39, icon: '🧪', color: '#60a5fa', desc: 'A basic prototype — core pieces are in place.' },
+  { name: 'Production',  minScore: 40, maxScore: 59, icon: '🚀', color: '#a78bfa', desc: 'Production-ready — solid fundamentals.' },
+  { name: 'Enterprise',  minScore: 60, maxScore: 79, icon: '🏢', color: '#34d399', desc: 'Enterprise-grade — well-architected system.' },
+  { name: 'Hyperscale',  minScore: 80, maxScore: 100, icon: '🪐', color: '#f472b6', desc: 'Hyperscale — planet-level architecture!' },
+]
+
+// ——— Architecture Pattern Rules ———
+const STRENGTH_RULES = [
+  { check: (types) => types.has('cdn'), msg: '🌍 CDN for global static asset delivery — reduces latency by 50-80%', category: 'networking' },
+  { check: (types) => types.has('load-balancer'), msg: '⚖️ Load Balancer for horizontal scaling — handles traffic spikes gracefully', category: 'networking' },
+  { check: (types) => types.has('redis') || types.has('account-cache') || types.has('workspace-cache'), msg: '💎 Caching layer — sub-millisecond reads for hot data', category: 'performance' },
+  { check: (types) => types.has('rabbitmq'), msg: '📨 Message Queue for async processing — users never wait for slow operations', category: 'resilience' },
+  { check: (types) => types.has('kafka'), msg: '🌊 Event streaming with Kafka — real-time data pipelines at scale', category: 'data' },
+  { check: (types) => types.has('monitoring'), msg: '📊 Monitoring in place — you can detect issues before users report them', category: 'observability' },
+  { check: (types) => types.has('logging'), msg: '📋 Logging infrastructure — essential for debugging distributed systems', category: 'observability' },
+  { check: (types) => types.has('api-gateway'), msg: '🚪 API Gateway centralizes routing, auth, and rate-limiting', category: 'architecture' },
+  { check: (types) => types.has('websocket'), msg: '🔌 WebSocket support — enables real-time bidirectional communication', category: 'real-time' },
+  { check: (types) => types.has('dns'), msg: '🔗 DNS routing configured — essential production infrastructure', category: 'networking' },
+  { check: (types) => types.has('serverless'), msg: '⚡ Serverless functions — cost-effective burst processing', category: 'compute' },
+  { check: (types) => types.has('aws-s3'), msg: '🪣 Object storage (S3) — 99.999999999% durability for files and media', category: 'storage' },
+  { check: (types, conns) => types.has('web-client') && types.has('mobile-client'), msg: '📱 Multi-platform support — reaching both web and mobile users', category: 'clients' },
+  { check: (types) => types.has('auth-service'), msg: '🔑 Dedicated Auth Service — security isolated from business logic', category: 'security' },
+]
+
+const WARNING_RULES = [
+  {
+    check: (types, connSet, comps) => {
+      const hasDb = types.has('postgresql') || types.has('cassandra') || types.has('mongodb')
+      const hasCache = types.has('redis') || types.has('account-cache') || types.has('workspace-cache')
+      return hasDb && !hasCache && comps.length > 4
+    },
+    msg: '⚠️ Database without caching — at scale, every read hits the DB. Add Redis to cache hot data.',
+    severity: 'medium',
+  },
+  {
+    check: (types, connSet, comps) => {
+      const serviceCount = ['server', 'auth-service', 'workspace-service', 'catalog-service', 'dispatch-service', 'chat-server', 'routing-service'].filter(t => types.has(t)).length
+      return serviceCount > 1 && !types.has('load-balancer')
+    },
+    msg: '⚠️ Multiple services without a Load Balancer — a single point of failure will crash everything.',
+    severity: 'high',
+  },
+  {
+    check: (types) => {
+      return !types.has('web-client') && !types.has('mobile-client')
+    },
+    msg: '⚠️ No client entry point — users need a Web Client or Mobile App to access your system.',
+    severity: 'high',
+  },
+  {
+    check: (types, connSet, comps, conns) => {
+      // Check for orphaned components (no connections)
+      const connectedIds = new Set()
+      conns.forEach(c => { connectedIds.add(c.from); connectedIds.add(c.to) })
+      const orphans = comps.filter(c => !connectedIds.has(c.id))
+      return orphans.length > 0 && comps.length > 1
+    },
+    msg: '⚠️ Disconnected components detected — some nodes have no connections. Use Connect mode to link them.',
+    severity: 'medium',
+  },
+  {
+    check: (types, connSet, comps) => {
+      const hasClient = types.has('web-client') || types.has('mobile-client')
+      const hasServer = types.has('server') || types.has('api-gateway') || types.has('auth-service')
+      const hasDb = types.has('postgresql') || types.has('cassandra') || types.has('mongodb')
+      return hasClient && hasDb && !hasServer
+    },
+    msg: '⚠️ Client connected directly to database — you need a server or API layer in between for security.',
+    severity: 'high',
+  },
+  {
+    check: (types) => {
+      return types.has('cdn') && !types.has('aws-s3')
+    },
+    msg: '💡 CDN without origin storage — consider adding AWS S3 as the CDN\'s origin for static files.',
+    severity: 'low',
+  },
+  {
+    check: (types, connSet, comps) => {
+      return comps.length >= 8 && !types.has('monitoring') && !types.has('logging')
+    },
+    msg: '⚠️ Large system without observability — add Monitoring (Prometheus) or Logging (ELK) to detect failures.',
+    severity: 'medium',
+  },
+]
+
+const SUGGESTION_RULES = [
+  {
+    check: (types) => !types.has('redis') && !types.has('account-cache') && !types.has('workspace-cache'),
+    msg: 'Add a Redis Cache to speed up frequently accessed data (sessions, hot queries).',
+    icon: '💎',
+  },
+  {
+    check: (types) => !types.has('load-balancer') && (types.has('server') || types.has('api-gateway')),
+    msg: 'Add a Load Balancer (AWS ALB) in front of your servers for horizontal scaling.',
+    icon: '⚖️',
+  },
+  {
+    check: (types) => !types.has('cdn') && (types.has('web-client') || types.has('mobile-client')),
+    msg: 'Add a CDN to serve static assets (images, JS, CSS) from edge locations near users.',
+    icon: '🌍',
+  },
+  {
+    check: (types) => !types.has('rabbitmq') && !types.has('kafka'),
+    msg: 'Consider adding a Message Queue (RabbitMQ) for async processing like emails and notifications.',
+    icon: '📨',
+  },
+  {
+    check: (types) => !types.has('monitoring'),
+    msg: 'Add Prometheus monitoring — track latency, errors, traffic, and saturation (the 4 golden signals).',
+    icon: '📊',
+  },
+  {
+    check: (types) => !types.has('api-gateway') && (types.has('auth-service') || types.has('workspace-service') || types.has('catalog-service')),
+    msg: 'Add an API Gateway to route requests to your microservices — centralizes auth and rate-limiting.',
+    icon: '🚪',
+  },
+  {
+    check: (types) => types.has('postgresql') && !types.has('mongodb') && !types.has('cassandra'),
+    msg: 'Consider adding a NoSQL database (MongoDB/Cassandra) for flexible or write-heavy data needs.',
+    icon: '🍃',
+  },
+]
+
+// ——— Next-Step Guidance Rules ———
+// Context-aware rules that suggest what users should do next
+const NEXT_STEP_RULES = [
+  // Step 1: Need a client
+  {
+    priority: 1,
+    check: (types) => !types.has('web-client') && !types.has('mobile-client'),
+    msg: 'Start by adding a **Web Client** or **Mobile App** — this is where users interact with your system.',
+    action: 'add',
+    component: 'web-client',
+  },
+  // Step 2: Need compute
+  {
+    priority: 2,
+    check: (types) => (types.has('web-client') || types.has('mobile-client')) && !types.has('server') && !types.has('api-gateway') && !types.has('auth-service'),
+    msg: 'Add a **Web Server** or **API Gateway** — your client needs a backend to process requests.',
+    action: 'add',
+    component: 'server',
+  },
+  // Step 3: Need storage
+  {
+    priority: 3,
+    check: (types) => {
+      const hasCompute = types.has('server') || types.has('api-gateway') || types.has('auth-service')
+      const hasDb = types.has('postgresql') || types.has('cassandra') || types.has('mongodb')
+      return hasCompute && !hasDb
+    },
+    msg: 'Add a **database** (PostgreSQL, MongoDB, or Cassandra) — your server needs persistent storage for data.',
+    action: 'add',
+    component: 'postgresql',
+  },
+  // Step 4: Connect client to server
+  {
+    priority: 4,
+    check: (types, connSet) => {
+      const hasClient = types.has('web-client') || types.has('mobile-client')
+      const hasCompute = types.has('server') || types.has('api-gateway') || types.has('load-balancer')
+      if (!hasClient || !hasCompute) return false
+      // Check if client is connected to any compute
+      const clientTypes = ['web-client', 'mobile-client']
+      const computeTypes = ['server', 'api-gateway', 'load-balancer']
+      for (const c of clientTypes) {
+        for (const s of computeTypes) {
+          if (types.has(c) && types.has(s) && (connSet.has(`${c}->${s}`) || connSet.has(`${s}->${c}`))) return false
+        }
+      }
+      return true
+    },
+    msg: '🔗 **Connect your client to the server** — click "Connect" in the toolbar, then click the client → server.',
+    action: 'connect',
+  },
+  // Step 5: Connect server to database
+  {
+    priority: 5,
+    check: (types, connSet) => {
+      const computeTypes = ['server', 'api-gateway', 'auth-service', 'catalog-service', 'workspace-service']
+      const dbTypes = ['postgresql', 'cassandra', 'mongodb']
+      const hasCompute = computeTypes.some(t => types.has(t))
+      const hasDb = dbTypes.some(t => types.has(t))
+      if (!hasCompute || !hasDb) return false
+      for (const c of computeTypes) {
+        for (const d of dbTypes) {
+          if (types.has(c) && types.has(d) && (connSet.has(`${c}->${d}`) || connSet.has(`${d}->${c}`))) return false
+        }
+      }
+      return true
+    },
+    msg: '🔗 **Connect your server to the database** — your server needs to read/write data.',
+    action: 'connect',
+  },
+  // Scaling: Add load balancer
+  {
+    priority: 6,
+    check: (types) => {
+      const hasClient = types.has('web-client') || types.has('mobile-client')
+      const hasServer = types.has('server') || types.has('api-gateway')
+      const hasDb = types.has('postgresql') || types.has('mongodb') || types.has('cassandra')
+      return hasClient && hasServer && hasDb && !types.has('load-balancer')
+    },
+    msg: 'Scale up: Add a **Load Balancer (AWS ALB)** between clients and servers to handle more traffic.',
+    action: 'add',
+    component: 'load-balancer',
+  },
+  // Caching
+  {
+    priority: 7,
+    check: (types) => {
+      const hasDb = types.has('postgresql') || types.has('mongodb') || types.has('cassandra')
+      const hasCache = types.has('redis') || types.has('account-cache') || types.has('workspace-cache')
+      return hasDb && !hasCache
+    },
+    msg: 'Performance boost: Add **Redis Cache** — cache hot data for 100x faster reads than hitting the database.',
+    action: 'add',
+    component: 'redis',
+  },
+  // CDN
+  {
+    priority: 8,
+    check: (types) => {
+      const hasClient = types.has('web-client') || types.has('mobile-client')
+      return hasClient && !types.has('cdn')
+    },
+    msg: 'Add a **CDN** to serve static assets (images, CSS, JS) from edge locations worldwide.',
+    action: 'add',
+    component: 'cdn',
+  },
+  // Async processing
+  {
+    priority: 9,
+    check: (types) => {
+      const hasServer = types.has('server') || types.has('api-gateway') || types.has('auth-service')
+      return hasServer && !types.has('rabbitmq') && !types.has('kafka')
+    },
+    msg: 'Add a **Message Queue** (RabbitMQ) for async tasks — emails, notifications, image processing.',
+    action: 'add',
+    component: 'rabbitmq',
+  },
+  // Observability
+  {
+    priority: 10,
+    check: (types, connSet, comps) => {
+      return comps.length >= 5 && !types.has('monitoring') && !types.has('logging')
+    },
+    msg: 'Add **Monitoring** (Prometheus) — track system health and catch issues before users report them.',
+    action: 'add',
+    component: 'monitoring',
+  },
+  // API Gateway for microservices
+  {
+    priority: 11,
+    check: (types) => {
+      const serviceCount = ['auth-service', 'workspace-service', 'catalog-service', 'dispatch-service', 'chat-server', 'routing-service'].filter(t => types.has(t)).length
+      return serviceCount >= 1 && !types.has('api-gateway')
+    },
+    msg: 'Add an **API Gateway** to route requests to your microservices — centralizes auth and rate-limiting.',
+    action: 'add',
+    component: 'api-gateway',
+  },
+  // DNS
+  {
+    priority: 12,
+    check: (types) => {
+      return types.has('load-balancer') && !types.has('dns')
+    },
+    msg: 'Add **DNS (Route53)** — translates your domain name to the load balancer IP for users.',
+    action: 'add',
+    component: 'dns',
+  },
+]
+
+/**
+ * Analyzes a sandbox (free-design) architecture and returns intelligent feedback.
+ * Enhanced with live guidance: next steps, viability, design health, and missing connections.
+ * @param {Array} placedComponents - Array of { id, type, x, y }
+ * @param {Array} connections - Array of { from, to }
+ * @returns {Object} Full analysis result
+ */
+export function analyzeSandboxDesign(placedComponents, connections) {
+  if (placedComponents.length === 0) {
+    return {
+      score: 0,
+      tier: DESIGN_TIERS[0],
+      closestMatch: null,
+      strengths: [],
+      warnings: [],
+      suggestions: [],
+      categoryBreakdown: COMPONENT_CATEGORIES.map(cat => ({
+        label: cat.label, placed: 0, total: cat.components.length, used: false,
+      })),
+      stats: { components: 0, connections: 0, categories: 0, totalCategories: COMPONENT_CATEGORIES.length },
+      nextSteps: [{ msg: 'Start by dragging a **Web Client** 🌐 or **Mobile App** 📱 onto the canvas.', action: 'add', component: 'web-client', priority: 0 }],
+      designHealth: { status: 'empty', label: 'Empty Canvas', color: '#64748b', icon: '⬜' },
+      viability: { viable: false, reason: 'No components placed yet. Add components to start designing.', percentage: 0 },
+      missingConnections: [],
+    }
+  }
+
+  const placedTypes = new Set(placedComponents.map(c => c.type))
+
+  // Build connection type set for pattern checking
+  const idToType = {}
+  placedComponents.forEach(c => { idToType[c.id] = c.type })
+  const connTypeSet = new Set()
+  connections.forEach(conn => {
+    const fromType = idToType[conn.from]
+    const toType = idToType[conn.to]
+    if (fromType && toType) {
+      connTypeSet.add(`${fromType}->${toType}`)
+      connTypeSet.add(`${toType}->${fromType}`)
+    }
+  })
+
+  // ——— 1. Pattern Match ———
+  let bestMatch = null
+  let bestSimilarity = 0
+
+  scenarios.forEach(s => {
+    if (!s.requiredComponents || s.requiredComponents.length === 0) return
+    
+    const scenarioTypes = new Set(s.requiredComponents)
+    const intersection = [...scenarioTypes].filter(t => placedTypes.has(t)).length
+    const union = new Set([...scenarioTypes, ...placedTypes]).size
+    const similarity = union > 0 ? intersection / union : 0
+
+    let connSimilarity = 0
+    if (s.requiredConnections && s.requiredConnections.length > 0) {
+      const matchedConns = s.requiredConnections.filter(([from, to]) => 
+        connTypeSet.has(`${from}->${to}`)
+      ).length
+      connSimilarity = matchedConns / s.requiredConnections.length
+    }
+
+    const totalSim = similarity * 0.7 + connSimilarity * 0.3
+
+    if (totalSim > bestSimilarity && totalSim > 0.15) {
+      bestSimilarity = totalSim
+      bestMatch = {
+        id: s.id,
+        title: s.title,
+        icon: s.icon,
+        similarity: Math.round(totalSim * 100),
+        techStack: s.techStack,
+        difficulty: s.difficulty,
+        missingComponents: s.requiredComponents.filter(t => !placedTypes.has(t)),
+        missingConnections: s.requiredConnections
+          ? s.requiredConnections.filter(([from, to]) => !connTypeSet.has(`${from}->${to}`))
+          : [],
+      }
+    }
+  })
+
+  // ——— 2. Category diversity ———
+  const usedCategories = new Set()
+  COMPONENT_CATEGORIES.forEach(cat => {
+    if (cat.components.some(c => placedTypes.has(c.type))) {
+      usedCategories.add(cat.id)
+    }
+  })
+
+  // ——— 3. Strengths ———
+  const strengths = STRENGTH_RULES
+    .filter(rule => rule.check(placedTypes, connTypeSet))
+    .map(rule => ({ msg: rule.msg, category: rule.category }))
+
+  // ——— 4. Warnings ———
+  const warnings = WARNING_RULES
+    .filter(rule => rule.check(placedTypes, connTypeSet, placedComponents, connections))
+    .map(rule => ({ msg: rule.msg, severity: rule.severity }))
+
+  // ——— 5. Suggestions ———
+  const suggestions = SUGGESTION_RULES
+    .filter(rule => rule.check(placedTypes))
+    .slice(0, 4)
+    .map(rule => ({ msg: rule.msg, icon: rule.icon }))
+
+  // ——— 6. Next Steps (top 2 most relevant) ———
+  const nextSteps = NEXT_STEP_RULES
+    .filter(rule => rule.check(placedTypes, connTypeSet, placedComponents))
+    .sort((a, b) => a.priority - b.priority)
+    .slice(0, 2)
+    .map(rule => ({ msg: rule.msg, action: rule.action, component: rule.component, priority: rule.priority }))
+
+  // ——— 7. Architecture Score (0–100) ———
+  let score = 0
+  score += Math.min(placedComponents.length * 3, 20)
+
+  const connectedIds = new Set()
+  connections.forEach(c => { connectedIds.add(c.from); connectedIds.add(c.to) })
+  const connectionRatio = placedComponents.length > 0
+    ? connectedIds.size / placedComponents.length
+    : 0
+  score += Math.round(connectionRatio * 20)
+  score += Math.round((usedCategories.size / COMPONENT_CATEGORIES.length) * 20)
+  score += Math.min(strengths.length * 4, 25)
+
+  const warningPenalty = warnings.reduce((sum, w) => {
+    if (w.severity === 'high') return sum + 5
+    if (w.severity === 'medium') return sum + 3
+    return sum + 1
+  }, 0)
+  score -= Math.min(warningPenalty, 15)
+
+  if (bestMatch) {
+    score += Math.round(bestMatch.similarity * 0.15)
+  }
+
+  score = Math.max(0, Math.min(100, score))
+
+  // ——— 8. Design Tier ———
+  const tier = DESIGN_TIERS.find(t => score >= t.minScore && score <= t.maxScore) || DESIGN_TIERS[0]
+
+  // ——— 9. Category breakdown ———
+  const categoryBreakdown = COMPONENT_CATEGORIES.map(cat => {
+    const placed = cat.components.filter(c => placedTypes.has(c.type)).length
+    return {
+      label: cat.label,
+      placed,
+      total: cat.components.length,
+      used: placed > 0,
+    }
+  })
+
+  // ——— 10. Viability Check — "Will this design actually work?" ———
+  const hasClient = placedTypes.has('web-client') || placedTypes.has('mobile-client')
+  const hasCompute = placedTypes.has('server') || placedTypes.has('api-gateway') || placedTypes.has('auth-service') || placedTypes.has('workspace-service')
+  const hasStorage = placedTypes.has('postgresql') || placedTypes.has('mongodb') || placedTypes.has('cassandra')
+  const hasClientToCompute = (() => {
+    const clientTypes = ['web-client', 'mobile-client']
+    const computeTypes = ['server', 'api-gateway', 'load-balancer', 'auth-service']
+    for (const c of clientTypes) {
+      for (const s of computeTypes) {
+        if (connTypeSet.has(`${c}->${s}`)) return true
+      }
+    }
+    return false
+  })()
+  const hasComputeToStorage = (() => {
+    const computeTypes = ['server', 'api-gateway', 'auth-service', 'workspace-service', 'catalog-service']
+    const dbTypes = ['postgresql', 'mongodb', 'cassandra']
+    for (const c of computeTypes) {
+      for (const d of dbTypes) {
+        if (connTypeSet.has(`${c}->${d}`)) return true
+      }
+    }
+    return false
+  })()
+
+  let viabilityPercentage = 0
+  let viabilityReason = ''
+  const viabilityChecks = []
+
+  // Check 1: Has client entry point (25%)
+  viabilityChecks.push({ label: 'User entry point (Client)', met: hasClient, weight: 25 })
+  // Check 2: Has compute/server (25%)
+  viabilityChecks.push({ label: 'Application logic (Server)', met: hasCompute, weight: 25 })
+  // Check 3: Has persistent storage (25%)
+  viabilityChecks.push({ label: 'Data persistence (Database)', met: hasStorage, weight: 25 })
+  // Check 4: End-to-end connected (25%)
+  const isConnected = hasClientToCompute && hasComputeToStorage
+  viabilityChecks.push({ label: 'End-to-end data flow', met: isConnected, weight: 25 })
+
+  viabilityPercentage = viabilityChecks.reduce((sum, c) => sum + (c.met ? c.weight : 0), 0)
+
+  const viable = viabilityPercentage >= 75
+  if (viabilityPercentage === 100) {
+    viabilityReason = '✅ This design is viable! Data can flow from users through your servers to the database and back.'
+  } else if (viabilityPercentage >= 75) {
+    viabilityReason = '🟡 Almost there! Your core architecture works, but connect all layers for full data flow.'
+  } else if (viabilityPercentage >= 50) {
+    viabilityReason = '🟠 Partially viable — you have some pieces, but critical layers are missing.'
+  } else if (viabilityPercentage > 0) {
+    viabilityReason = '🔴 Not yet viable — a working system needs a Client, Server, and Database all connected.'
+  } else {
+    viabilityReason = '⬜ Add components to start building your architecture.'
+  }
+
+  // ——— 11. Design Health Status ———
+  const highWarnings = warnings.filter(w => w.severity === 'high').length
+  let designHealth
+  if (viabilityPercentage === 0) {
+    designHealth = { status: 'empty', label: 'Empty Canvas', color: '#64748b', icon: '⬜' }
+  } else if (highWarnings >= 2 || viabilityPercentage < 50) {
+    designHealth = { status: 'critical', label: 'Critical Issues', color: '#ef4444', icon: '🔴' }
+  } else if (highWarnings >= 1 || warnings.length >= 3 || viabilityPercentage < 75) {
+    designHealth = { status: 'warning', label: 'Needs Attention', color: '#f59e0b', icon: '🟡' }
+  } else if (score >= 60 && viabilityPercentage === 100) {
+    designHealth = { status: 'excellent', label: 'Excellent Design', color: '#22c55e', icon: '🟢' }
+  } else if (viabilityPercentage >= 75) {
+    designHealth = { status: 'healthy', label: 'On Track', color: '#34d399', icon: '🟢' }
+  } else {
+    designHealth = { status: 'warning', label: 'Needs Work', color: '#f59e0b', icon: '🟡' }
+  }
+
+  // ——— 12. Missing Connections for closest match ———
+  const missingConnections = bestMatch && bestMatch.missingConnections
+    ? bestMatch.missingConnections.slice(0, 3).map(([from, to]) => {
+        const fromComp = COMPONENT_MAP[from]
+        const toComp = COMPONENT_MAP[to]
+        return {
+          from: fromComp?.label || from,
+          fromIcon: fromComp?.icon || '❓',
+          to: toComp?.label || to,
+          toIcon: toComp?.icon || '❓',
+        }
+      })
+    : []
+
+  return {
+    score,
+    tier,
+    closestMatch: bestMatch,
+    strengths,
+    warnings,
+    suggestions,
+    categoryBreakdown,
+    stats: {
+      components: placedComponents.length,
+      connections: connections.length,
+      categories: usedCategories.size,
+      totalCategories: COMPONENT_CATEGORIES.length,
+    },
+    nextSteps,
+    designHealth,
+    viability: { viable, reason: viabilityReason, percentage: viabilityPercentage, checks: viabilityChecks },
+    missingConnections,
+  }
+}

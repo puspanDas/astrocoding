@@ -3,14 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Cpu, ChevronRight, CheckCircle, Circle, Sparkles,
   Lightbulb, Trash2, Link2, RotateCcw, Send, Award,
-  Target, MousePointer2, X, Play, Pause, Square, SkipForward,
+  Target, MousePointer2, X, Play, Pause, Square, SkipForward, Brain,
   Users, TrendingUp, Download, Wand2, ZoomIn, ZoomOut, Maximize2,
   Undo2, Redo2, Zap, BookOpen, ExternalLink
 } from 'lucide-react'
 import StarField from '../components/StarField'
 import {
   COMPONENT_CATEGORIES, COMPONENT_MAP,
-  scenarios, validateDesign, generateFlowSteps
+  scenarios, validateDesign, generateFlowSteps, analyzeSandboxDesign
 } from '../engine/systemDesignScenarios'
 import './SystemDesign.css'
 
@@ -65,6 +65,10 @@ export default function SystemDesign() {
 
   // Zoom state
   const [zoomLevel, setZoomLevel] = useState(1)
+
+  // AI Advisor state (sandbox only)
+  const [advisorResult, setAdvisorResult] = useState(null)
+  const [advisorDetailOpen, setAdvisorDetailOpen] = useState(false)
 
   // Undo/Redo state
   const undoStackRef = useRef([])
@@ -185,6 +189,8 @@ export default function SystemDesign() {
     setValidationResult(null)
     setShowSuccess(false)
     setHintIndex(-1)
+    setAdvisorResult(null)
+    setAdvisorDetailOpen(false)
   }
 
   // ——— Simulation logic ———
@@ -389,6 +395,8 @@ export default function SystemDesign() {
     setValidationResult(null)
     setShowSuccess(false)
     setHintIndex(-1)
+    setAdvisorResult(null)
+    setAdvisorDetailOpen(false)
   }
 
   // ——— Zoom controls ———
@@ -415,6 +423,16 @@ export default function SystemDesign() {
       }
     }
   }
+
+  // ——— AI Advisor (Sandbox) — auto-runs on every change ———
+  const isSandbox = scenario.requiredComponents.length === 0
+
+  useEffect(() => {
+    if (!isSandbox) return
+    // Auto-analyze on every component/connection change
+    const result = analyzeSandboxDesign(placedComponents, connections)
+    setAdvisorResult(result)
+  }, [placedComponents, connections, isSandbox])
 
   // ——— Get connection line coordinates (bezier) ———
   function getConnectionCoords(conn) {
@@ -983,6 +1001,7 @@ export default function SystemDesign() {
                   <Play size={14} />
                   <span>Simulate</span>
                 </button>
+
                 <button
                   className="sysdesign__canvas-tool"
                   onClick={handleExportTxt}
@@ -1193,10 +1212,173 @@ export default function SystemDesign() {
               </div>
             )}
 
-            {scenario.requiredComponents.length === 0 && !validationResult && (
-              <div style={{ padding: '20px 8px', color: 'var(--text-muted)', fontSize: '0.78rem', textAlign: 'center', lineHeight: '1.6' }}>
+            {isSandbox && advisorResult && (
+              <div className="sysdesign__advisor-section">
+
+                {/* Live Health Status + Score */}
+                <div className="sysdesign__advisor-health" style={{ borderColor: `${advisorResult.designHealth.color}33` }}>
+                  <div className="sysdesign__advisor-health-top">
+                    <div className="sysdesign__advisor-health-badge" style={{ background: `${advisorResult.designHealth.color}18`, borderColor: `${advisorResult.designHealth.color}44` }}>
+                      <span>{advisorResult.designHealth.icon}</span>
+                      <span style={{ color: advisorResult.designHealth.color }}>{advisorResult.designHealth.label}</span>
+                    </div>
+                    <div className="sysdesign__advisor-score-mini">
+                      <span className="sysdesign__advisor-score-num" style={{ color: advisorResult.tier.color }}>{advisorResult.score}</span>
+                      <span className="sysdesign__advisor-score-max">/100</span>
+                    </div>
+                  </div>
+                  {/* Score bar */}
+                  <div className="sysdesign__advisor-score-bar">
+                    <div
+                      className="sysdesign__advisor-score-fill"
+                      style={{ width: `${advisorResult.score}%`, background: `linear-gradient(90deg, ${advisorResult.tier.color}, ${advisorResult.tier.color}88)` }}
+                    />
+                  </div>
+                  <div className="sysdesign__advisor-tier-line">
+                    <span className="sysdesign__advisor-tier-icon-sm">{advisorResult.tier.icon}</span>
+                    <span className="sysdesign__advisor-tier-name-sm" style={{ color: advisorResult.tier.color }}>{advisorResult.tier.name}</span>
+                    <span className="sysdesign__advisor-tier-desc-sm">{advisorResult.tier.desc}</span>
+                  </div>
+                </div>
+
+                {/* Viability Check */}
+                <div className="sysdesign__advisor-viability">
+                  <div className="sysdesign__advisor-list-title">🛡️ Will This Design Work?</div>
+                  <div className="sysdesign__advisor-viability-bar">
+                    <div
+                      className="sysdesign__advisor-viability-fill"
+                      style={{
+                        width: `${advisorResult.viability.percentage}%`,
+                        background: advisorResult.viability.percentage === 100 ? '#22c55e'
+                          : advisorResult.viability.percentage >= 75 ? '#34d399'
+                          : advisorResult.viability.percentage >= 50 ? '#f59e0b' : '#ef4444'
+                      }}
+                    />
+                  </div>
+                  {advisorResult.viability.checks && advisorResult.viability.checks.map((ck, i) => (
+                    <div key={i} className={`sysdesign__advisor-viability-check ${ck.met ? 'sysdesign__advisor-viability-check--met' : ''}`}>
+                      {ck.met ? <CheckCircle size={12} /> : <Circle size={12} />}
+                      <span>{ck.label}</span>
+                    </div>
+                  ))}
+                  <div className="sysdesign__advisor-viability-msg">{advisorResult.viability.reason}</div>
+                </div>
+
+                {/* Next Steps */}
+                {advisorResult.nextSteps && advisorResult.nextSteps.length > 0 && (
+                  <div className="sysdesign__advisor-nextstep">
+                    <div className="sysdesign__advisor-list-title">🧭 Next Step</div>
+                    {advisorResult.nextSteps.map((step, i) => (
+                      <div key={i} className={`sysdesign__advisor-nextstep-item sysdesign__advisor-nextstep-item--${step.action}`}>
+                        <span className="sysdesign__advisor-nextstep-action">
+                          {step.action === 'connect' ? '🔗' : '➕'}
+                        </span>
+                        <span dangerouslySetInnerHTML={{ __html: step.msg.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Closest Match */}
+                {advisorResult.closestMatch && (
+                  <div className="sysdesign__advisor-match">
+                    <div className="sysdesign__advisor-list-title">🎯 Resembles</div>
+                    <div className="sysdesign__advisor-match-card">
+                      <span className="sysdesign__advisor-match-icon">{advisorResult.closestMatch.icon}</span>
+                      <div className="sysdesign__advisor-match-info">
+                        <div className="sysdesign__advisor-match-name">{advisorResult.closestMatch.title}</div>
+                        <div className="sysdesign__advisor-match-sim">{advisorResult.closestMatch.similarity}% match</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Warnings (always visible if any) */}
+                {advisorResult.warnings.length > 0 && (
+                  <div className="sysdesign__advisor-list sysdesign__advisor-list--warnings">
+                    <div className="sysdesign__advisor-list-title">🔶 Issues</div>
+                    {advisorResult.warnings.map((w, i) => (
+                      <div key={i} className={`sysdesign__advisor-list-item sysdesign__advisor-list-item--warning sysdesign__advisor-list-item--${w.severity}`}>
+                        {w.msg}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Collapsible Detail Section */}
+                <button
+                  className="sysdesign__advisor-detail-toggle"
+                  onClick={() => setAdvisorDetailOpen(!advisorDetailOpen)}
+                >
+                  <Brain size={12} />
+                  <span>{advisorDetailOpen ? 'Hide Details' : 'Show Full Analysis'}</span>
+                  <ChevronRight size={12} style={{ transform: advisorDetailOpen ? 'rotate(90deg)' : 'none', transition: '0.2s' }} />
+                </button>
+
+                {advisorDetailOpen && (
+                  <div className="sysdesign__advisor-details">
+                    {/* Strengths */}
+                    {advisorResult.strengths.length > 0 && (
+                      <div className="sysdesign__advisor-list sysdesign__advisor-list--strengths">
+                        <div className="sysdesign__advisor-list-title">✅ Strengths</div>
+                        {advisorResult.strengths.map((s, i) => (
+                          <div key={i} className="sysdesign__advisor-list-item sysdesign__advisor-list-item--strength">
+                            {s.msg}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Suggestions */}
+                    {advisorResult.suggestions.length > 0 && (
+                      <div className="sysdesign__advisor-list sysdesign__advisor-list--suggestions">
+                        <div className="sysdesign__advisor-list-title">💡 Suggestions</div>
+                        {advisorResult.suggestions.map((s, i) => (
+                          <div key={i} className="sysdesign__advisor-list-item sysdesign__advisor-list-item--suggestion">
+                            <span className="sysdesign__advisor-suggestion-icon">{s.icon}</span>
+                            <span>{s.msg}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Category Breakdown */}
+                    <div className="sysdesign__advisor-categories">
+                      <div className="sysdesign__advisor-list-title">📦 Coverage</div>
+                      <div className="sysdesign__advisor-cat-grid">
+                        {advisorResult.categoryBreakdown.map((cat, i) => (
+                          <div key={i} className={`sysdesign__advisor-cat-item ${cat.used ? 'sysdesign__advisor-cat-item--used' : ''}`}>
+                            <span className="sysdesign__advisor-cat-label">{cat.label}</span>
+                            <span className="sysdesign__advisor-cat-count">{cat.placed}/{cat.total}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Stats */}
+                    <div className="sysdesign__advisor-stats">
+                      <div className="sysdesign__advisor-stat">
+                        <span className="sysdesign__advisor-stat-val">{advisorResult.stats.components}</span>
+                        <span className="sysdesign__advisor-stat-label">Components</span>
+                      </div>
+                      <div className="sysdesign__advisor-stat">
+                        <span className="sysdesign__advisor-stat-val">{advisorResult.stats.connections}</span>
+                        <span className="sysdesign__advisor-stat-label">Connections</span>
+                      </div>
+                      <div className="sysdesign__advisor-stat">
+                        <span className="sysdesign__advisor-stat-val">{advisorResult.stats.categories}/{advisorResult.stats.totalCategories}</span>
+                        <span className="sysdesign__advisor-stat-label">Categories</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {isSandbox && !advisorResult && (
+              <div className="sysdesign__advisor-placeholder">
                 🎨 Free Design Mode<br />
-                No requirements — build anything you like!
+                Drag components onto the canvas — the <strong>AI Advisor</strong> will guide you in real-time!
               </div>
             )}
           </div>
