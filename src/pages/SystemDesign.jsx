@@ -4,7 +4,8 @@ import {
   Cpu, ChevronRight, CheckCircle, Circle, Sparkles,
   Lightbulb, Trash2, Link2, RotateCcw, Send, Award,
   Target, MousePointer2, X, Play, Pause, Square, SkipForward,
-  Users, TrendingUp, Download, Wand2, ZoomIn, ZoomOut, Maximize2
+  Users, TrendingUp, Download, Wand2, ZoomIn, ZoomOut, Maximize2,
+  Undo2, Redo2, Zap, BookOpen, ExternalLink
 } from 'lucide-react'
 import StarField from '../components/StarField'
 import {
@@ -65,6 +66,13 @@ export default function SystemDesign() {
   // Zoom state
   const [zoomLevel, setZoomLevel] = useState(1)
 
+  // Undo/Redo state
+  const undoStackRef = useRef([])
+  const redoStackRef = useRef([])
+  const [canUndo, setCanUndo] = useState(false)
+  const [canRedo, setCanRedo] = useState(false)
+  const stateRef = useRef({ placedComponents: [], connections: [] })
+
   const canvasRef = useRef(null)
   const scenario = scenarios[currentScenario]
 
@@ -75,6 +83,88 @@ export default function SystemDesign() {
       localStorage.setItem('astrocode-sysdesign-score', String(totalScore))
     } catch { /* noop */ }
   }, [completedScenarios, totalScore])
+
+  // Keep state ref in sync
+  useEffect(() => {
+    stateRef.current = { placedComponents, connections }
+  }, [placedComponents, connections])
+
+  // Undo/Redo functions
+  function saveSnapshot() {
+    const cur = stateRef.current
+    undoStackRef.current.push({
+      placedComponents: JSON.parse(JSON.stringify(cur.placedComponents)),
+      connections: JSON.parse(JSON.stringify(cur.connections))
+    })
+    if (undoStackRef.current.length > 50) undoStackRef.current.shift()
+    redoStackRef.current = []
+    setCanUndo(true)
+    setCanRedo(false)
+  }
+
+  function undo() {
+    if (undoStackRef.current.length === 0) return
+    const cur = stateRef.current
+    redoStackRef.current.push({
+      placedComponents: JSON.parse(JSON.stringify(cur.placedComponents)),
+      connections: JSON.parse(JSON.stringify(cur.connections))
+    })
+    const prev = undoStackRef.current.pop()
+    setPlacedComponents(prev.placedComponents)
+    setConnections(prev.connections)
+    stateRef.current = prev
+    setCanUndo(undoStackRef.current.length > 0)
+    setCanRedo(true)
+  }
+
+  function redo() {
+    if (redoStackRef.current.length === 0) return
+    const cur = stateRef.current
+    undoStackRef.current.push({
+      placedComponents: JSON.parse(JSON.stringify(cur.placedComponents)),
+      connections: JSON.parse(JSON.stringify(cur.connections))
+    })
+    const next = redoStackRef.current.pop()
+    setPlacedComponents(next.placedComponents)
+    setConnections(next.connections)
+    stateRef.current = next
+    setCanUndo(true)
+    setCanRedo(redoStackRef.current.length > 0)
+  }
+
+  // Keyboard shortcuts for undo/redo
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault()
+        if (undoStackRef.current.length > 0) {
+          const cur = stateRef.current
+          redoStackRef.current.push({ placedComponents: JSON.parse(JSON.stringify(cur.placedComponents)), connections: JSON.parse(JSON.stringify(cur.connections)) })
+          const prev = undoStackRef.current.pop()
+          setPlacedComponents(prev.placedComponents)
+          setConnections(prev.connections)
+          stateRef.current = prev
+          setCanUndo(undoStackRef.current.length > 0)
+          setCanRedo(true)
+        }
+      }
+      if ((e.ctrlKey || e.metaKey) && ((e.key === 'z' && e.shiftKey) || e.key === 'y')) {
+        e.preventDefault()
+        if (redoStackRef.current.length > 0) {
+          const cur = stateRef.current
+          undoStackRef.current.push({ placedComponents: JSON.parse(JSON.stringify(cur.placedComponents)), connections: JSON.parse(JSON.stringify(cur.connections)) })
+          const next = redoStackRef.current.pop()
+          setPlacedComponents(next.placedComponents)
+          setConnections(next.connections)
+          stateRef.current = next
+          setCanUndo(true)
+          setCanRedo(redoStackRef.current.length > 0)
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   // Live validation (update checklist as user builds)
   useEffect(() => {
@@ -190,6 +280,8 @@ export default function SystemDesign() {
     const componentType = e.dataTransfer.getData('componentType')
     if (!componentType || !COMPONENT_MAP[componentType]) return
 
+    saveSnapshot()
+
     const rect = canvasRef.current.getBoundingClientRect()
     const scrollLeft = canvasRef.current.scrollLeft
     const scrollTop = canvasRef.current.scrollTop
@@ -220,6 +312,8 @@ export default function SystemDesign() {
 
     const comp = placedComponents.find(c => c.id === compId)
     if (!comp) return
+
+    saveSnapshot()
 
     dragOffset.current = {
       x: e.clientX - comp.x,
@@ -262,6 +356,7 @@ export default function SystemDesign() {
         c => (c.from === connectFrom && c.to === compId) || (c.from === compId && c.to === connectFrom)
       )
       if (!exists) {
+        saveSnapshot()
         setConnections(prev => [...prev, { from: connectFrom, to: compId }])
       }
       setConnectFrom(null)
@@ -271,10 +366,12 @@ export default function SystemDesign() {
   }
 
   function removeConnection(index) {
+    saveSnapshot()
     setConnections(prev => prev.filter((_, i) => i !== index))
   }
 
   function removeComponent(compId) {
+    saveSnapshot()
     setPlacedComponents(prev => prev.filter(c => c.id !== compId))
     setConnections(prev => prev.filter(c => c.from !== compId && c.to !== compId))
     if (selectedId === compId) setSelectedId(null)
@@ -283,6 +380,7 @@ export default function SystemDesign() {
 
   // ——— Clear canvas ———
   function handleClearCanvas() {
+    if (placedComponents.length > 0 || connections.length > 0) saveSnapshot()
     stopSimulation()
     setPlacedComponents([])
     setConnections([])
@@ -318,18 +416,26 @@ export default function SystemDesign() {
     }
   }
 
-  // ——— Get connection line coordinates ———
+  // ——— Get connection line coordinates (bezier) ———
   function getConnectionCoords(conn) {
     const fromComp = placedComponents.find(c => c.id === conn.from)
     const toComp = placedComponents.find(c => c.id === conn.to)
     if (!fromComp || !toComp) return null
 
-    return {
-      x1: fromComp.x + 50,
-      y1: fromComp.y + 30,
-      x2: toComp.x + 50,
-      y2: toComp.y + 30,
-    }
+    const x1 = fromComp.x + 50
+    const y1 = fromComp.y + 30
+    const x2 = toComp.x + 50
+    const y2 = toComp.y + 30
+    const dx = x2 - x1
+    const dy = y2 - y1
+    const dist = Math.sqrt(dx * dx + dy * dy)
+    const curvature = Math.min(dist * 0.15, 50)
+    const nx = dist > 0 ? (-dy / dist) * curvature : 0
+    const ny = dist > 0 ? (dx / dist) * curvature : 0
+    const cx = (x1 + x2) / 2 + nx
+    const cy = (y1 + y2) / 2 + ny
+
+    return { x1, y1, x2, y2, cx, cy, path: `M${x1},${y1} Q${cx},${cy} ${x2},${y2}` }
   }
 
   // Canvas click deselect
@@ -378,6 +484,7 @@ export default function SystemDesign() {
 
     if (bestMatch !== null && maxScore > 0) {
       setTimeout(() => {
+        saveSnapshot()
         handleScenarioChange(bestMatch)
         const targetScenario = scenarios[bestMatch]
 
@@ -507,6 +614,19 @@ export default function SystemDesign() {
           )}
         </div>
         <div className="sysdesign__topbar-right">
+          {placedComponents.length > 0 && (
+            <div className="sysdesign__live-counter">
+              <span className="sysdesign__live-counter-item">
+                <Cpu size={11} />
+                <span>{placedComponents.length}</span>
+              </span>
+              <span className="sysdesign__live-counter-divider">·</span>
+              <span className="sysdesign__live-counter-item">
+                <Link2 size={11} />
+                <span>{connections.length}</span>
+              </span>
+            </div>
+          )}
           <div className="sysdesign__score-badge">
             <Award size={14} />
             <span>{totalScore} pts</span>
@@ -711,6 +831,16 @@ export default function SystemDesign() {
                   >
                     <polygon points="0 0, 10 3.5, 0 7" fill="#a855f7" />
                   </marker>
+                  <marker
+                    id="arrowhead-active"
+                    markerWidth="10"
+                    markerHeight="7"
+                    refX="9"
+                    refY="3.5"
+                    orient="auto"
+                  >
+                    <polygon points="0 0, 10 3.5, 0 7" fill="#c084fc" />
+                  </marker>
                 </defs>
                 {connections.map((conn, i) => {
                   const coords = getConnectionCoords(conn)
@@ -718,27 +848,36 @@ export default function SystemDesign() {
                   const isActive = simulating && simActiveConn === i
                   return (
                     <g key={i}>
-                      <line
+                      <path
                         className="sysdesign__connection-hitbox"
-                        x1={coords.x1} y1={coords.y1}
-                        x2={coords.x2} y2={coords.y2}
+                        d={coords.path}
+                        fill="none"
                         onClick={(e) => { e.stopPropagation(); if (!simulating) removeConnection(i) }}
                       />
-                      {/* Glow line underneath when active */}
+                      {/* Glow path when active */}
                       {isActive && (
-                        <line
+                        <path
                           className="sysdesign__connection-glow"
-                          x1={coords.x1} y1={coords.y1}
-                          x2={coords.x2} y2={coords.y2}
+                          d={coords.path}
+                          fill="none"
                           stroke="#a855f7"
                         />
                       )}
-                      <line
+                      {/* Animated flow dashes on all lines */}
+                      <path
+                        className={`sysdesign__connection-flow ${isActive ? 'sysdesign__connection-flow--active' : ''}`}
+                        d={coords.path}
+                        fill="none"
+                        stroke={isActive ? '#c084fc' : 'rgba(168,85,247,0.15)'}
+                        strokeWidth="2"
+                        strokeDasharray="6 8"
+                      />
+                      <path
                         className={`sysdesign__connection-line ${isActive ? 'sysdesign__connection-line--active' : ''}`}
-                        x1={coords.x1} y1={coords.y1}
-                        x2={coords.x2} y2={coords.y2}
+                        d={coords.path}
+                        fill="none"
                         stroke={isActive ? '#c084fc' : '#a855f7'}
-                        markerEnd="url(#arrowhead)"
+                        markerEnd={isActive ? 'url(#arrowhead-active)' : 'url(#arrowhead)'}
                       />
                       {/* Animated data packet */}
                       {isActive && (
@@ -746,7 +885,7 @@ export default function SystemDesign() {
                           <animateMotion
                             dur="1.2s"
                             repeatCount="indefinite"
-                            path={`M${coords.x1},${coords.y1} L${coords.x2},${coords.y2}`}
+                            path={coords.path}
                           />
                         </circle>
                       )}
@@ -860,6 +999,23 @@ export default function SystemDesign() {
                 >
                   <Trash2 size={14} />
                   <span>Clear</span>
+                </button>
+                <div className="sysdesign__toolbar-divider" />
+                <button
+                  className="sysdesign__canvas-tool"
+                  onClick={undo}
+                  disabled={!canUndo}
+                  title="Undo (Ctrl+Z)"
+                >
+                  <Undo2 size={14} />
+                </button>
+                <button
+                  className="sysdesign__canvas-tool"
+                  onClick={redo}
+                  disabled={!canRedo}
+                  title="Redo (Ctrl+Shift+Z)"
+                >
+                  <Redo2 size={14} />
                 </button>
                 <div className="sysdesign__toolbar-divider" />
                 <button
@@ -1077,6 +1233,107 @@ export default function SystemDesign() {
           </div>
         </div>
       </div>
+
+      {/* ===== COMPONENT INSPECTOR PANEL ===== */}
+      <AnimatePresence>
+        {selectedId && (() => {
+          const selectedComp = placedComponents.find(c => c.id === selectedId)
+          if (!selectedComp) return null
+          const def = COMPONENT_MAP[selectedComp.type]
+          if (!def) return null
+          const compConnections = connections.filter(
+            c => c.from === selectedId || c.to === selectedId
+          ).map(c => {
+            const otherId = c.from === selectedId ? c.to : c.from
+            const other = placedComponents.find(p => p.id === otherId)
+            if (!other) return null
+            const otherDef = COMPONENT_MAP[other.type]
+            return otherDef ? { label: otherDef.label, icon: otherDef.icon, direction: c.from === selectedId ? 'outgoing' : 'incoming' } : null
+          }).filter(Boolean)
+          const category = COMPONENT_CATEGORIES.find(cat => cat.components.some(c => c.type === selectedComp.type))
+
+          return (
+            <motion.div
+              className="sysdesign__inspector"
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 30 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="sysdesign__inspector-header">
+                <div className="sysdesign__inspector-title-row">
+                  <span className="sysdesign__inspector-icon" style={{ background: `${def.color}22`, borderColor: `${def.color}44` }}>
+                    {def.icon}
+                  </span>
+                  <div>
+                    <div className="sysdesign__inspector-name">{def.label}</div>
+                    {category && <div className="sysdesign__inspector-category">{category.label}</div>}
+                  </div>
+                </div>
+                <button className="sysdesign__inspector-close" onClick={() => setSelectedId(null)}>
+                  <X size={14} />
+                </button>
+              </div>
+
+              <div className="sysdesign__inspector-body">
+                <div className="sysdesign__inspector-section">
+                  <div className="sysdesign__inspector-section-label">
+                    <BookOpen size={11} />
+                    <span>What is it?</span>
+                  </div>
+                  <p className="sysdesign__inspector-text">{def.desc}</p>
+                </div>
+
+                {def.whenToUse && (
+                  <div className="sysdesign__inspector-section">
+                    <div className="sysdesign__inspector-section-label">
+                      <Target size={11} />
+                      <span>When to use</span>
+                    </div>
+                    <p className="sysdesign__inspector-text">{def.whenToUse}</p>
+                  </div>
+                )}
+
+                {def.realWorldExample && (
+                  <div className="sysdesign__inspector-section">
+                    <div className="sysdesign__inspector-section-label">
+                      <ExternalLink size={11} />
+                      <span>Real-world example</span>
+                    </div>
+                    <p className="sysdesign__inspector-text sysdesign__inspector-text--highlight">{def.realWorldExample}</p>
+                  </div>
+                )}
+
+                {compConnections.length > 0 && (
+                  <div className="sysdesign__inspector-section">
+                    <div className="sysdesign__inspector-section-label">
+                      <Link2 size={11} />
+                      <span>Connections ({compConnections.length})</span>
+                    </div>
+                    <div className="sysdesign__inspector-connections">
+                      {compConnections.map((c, i) => (
+                        <div key={i} className="sysdesign__inspector-conn-item">
+                          <span className={`sysdesign__inspector-conn-dir sysdesign__inspector-conn-dir--${c.direction}`}>
+                            {c.direction === 'outgoing' ? '→' : '←'}
+                          </span>
+                          <span>{c.icon} {c.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {def.proTip && (
+                  <div className="sysdesign__inspector-tip">
+                    <Zap size={12} className="sysdesign__inspector-tip-icon" />
+                    <p>{def.proTip}</p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )
+        })()}
+      </AnimatePresence>
 
       {/* ===== RESULT OVERLAY ===== */}
       <AnimatePresence>
