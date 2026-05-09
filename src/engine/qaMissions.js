@@ -267,6 +267,208 @@ void execute() {
     validateSuccess: (state) => state.x >= 200 && state.signalsSent > 0,
     successMessage: '🎉 Function called! Hyper-drive activated!',
     reward: { scrap: 80, cores: 1 },
+  },
+  {
+    id: 'qa-boundary-value',
+    title: 'QA Bug Hunt: Off-By-One',
+    description: 'Boundary Value Analysis: The rover must stop exactly at the cliff edge (X=360). The loop runs one time too many and the rover falls off! Fix the boundary condition.',
+    difficulty: 3,
+    icon: '📏',
+    concepts: ['Debugging', 'Boundary Values'],
+    terrain: 'asteroids',
+    starterCode: {
+      javascript: `// 🐛 QA Bug Hunt: Off-By-One
+// The cliff is exactly at X=360. We start at X=60 and move 50 units per step.
+// We need exactly 6 steps. The loop below runs 7 times! Fix it!
+
+for (let i = 0; i <= 6; i++) { // BUG: i <= 6 runs 7 times
+  rover.moveForward(50);
+}
+
+rover.sendSignal("Safe!");
+`,
+      python: `# 🐛 QA Bug Hunt: Off-By-One
+# The cliff is exactly at X=360. We start at X=60 and move 50 units per step.
+# We need exactly 6 steps. The loop below runs 7 times! Fix it!
+
+for i in range(7): # BUG: range(7) runs 7 times
+    rover.move_forward(50)
+
+rover.send_signal("Safe!")
+`,
+      java: `// 🐛 QA Bug Hunt: Off-By-One
+public class Mission {
+    public static void execute() {
+        // BUG: i <= 6 runs 7 times
+        for (int i = 0; i <= 6; i++) {
+            rover.moveForward(50);
+        }
+        
+        rover.sendSignal("Safe!");
+    }
+}
+`,
+      cpp: `// 🐛 QA Bug Hunt: Off-By-One
+void execute() {
+    // BUG: i <= 6 runs 7 times
+    for (int i = 0; i <= 6; i++) {
+        rover.moveForward(50);
+    }
+    
+    rover.sendSignal("Safe!");
+}
+`
+    },
+    hints: [
+      '💡 The loop needs to run exactly 6 times.',
+      '💡 In JS/Java/C++, change i <= 6 to i < 6.',
+      '💡 In Python, change range(7) to range(6).',
+    ],
+    validateSuccess: (state) => state.x === 360 && state.signalsSent > 0,
+    successMessage: '🎉 Perfect boundary! You avoided the off-by-one error.',
+    reward: { scrap: 100, cores: 1 },
+  },
+  {
+    id: 'qa-edge-case',
+    title: 'QA Bug Hunt: State Assumptions',
+    description: 'Edge Case Testing: The developer assumed the rover always starts at X=0! But in this test environment, the rover starts at X=60. The rover needs to reach exactly X=200. Fix the logic.',
+    difficulty: 4,
+    icon: '🕳️',
+    concepts: ['Debugging', 'Edge Cases', 'State Variables'],
+    terrain: 'race',
+    starterCode: {
+      javascript: `// 🐛 QA Bug Hunt: State Assumptions
+// We need to reach exactly X=200.
+// The code assumes we started at 0. Fix the math so it calculates the correct distance!
+
+let targetX = 200;
+let currentX = 0; // BUG: We actually start at 60! You can use rover.getX()
+
+let distanceToMove = targetX - currentX;
+rover.moveForward(distanceToMove);
+
+rover.sendSignal("Arrived!");
+`,
+      python: `# 🐛 QA Bug Hunt: State Assumptions
+# We need to reach exactly X=200.
+# The code assumes we started at 0. Fix the math so it calculates the correct distance!
+
+target_x = 200
+current_x = 0 # BUG: We actually start at 60! You can use rover.get_x()
+
+distance_to_move = target_x - current_x
+rover.move_forward(distance_to_move)
+
+rover.send_signal("Arrived!")
+`,
+      java: `// 🐛 QA Bug Hunt: State Assumptions
+public class Mission {
+    public static void execute() {
+        int targetX = 200;
+        int currentX = 0; // BUG: We actually start at 60! Use rover.getX()
+        
+        int distanceToMove = targetX - currentX;
+        rover.moveForward(distanceToMove);
+        
+        rover.sendSignal("Arrived!");
+    }
+}
+`,
+      cpp: `// 🐛 QA Bug Hunt: State Assumptions
+void execute() {
+    int targetX = 200;
+    int currentX = 0; // BUG: We actually start at 60! Use rover.getX()
+    
+    int distanceToMove = targetX - currentX;
+    rover.moveForward(distanceToMove);
+    
+    rover.sendSignal("Arrived!");
+}
+`
+    },
+    hints: [
+      '💡 Never hardcode the starting position if a getter method exists.',
+      '💡 Replace currentX = 0 with currentX = rover.getX().',
+    ],
+    validateSuccess: (state) => state.x === 200 && state.signalsSent > 0,
+    successMessage: '🎉 Edge case handled! Using getters instead of hardcoded assumptions prevents bugs.',
+    reward: { scrap: 110, cores: 1 },
+  },
+  {
+    id: 'qa-logical-operator',
+    title: 'QA Bug Hunt: Wrong Operator',
+    description: 'The rover is supposed to perform an emergency stop (thrust) if X is greater than 100 OR Y is less than 200. The code uses AND (&&) instead of OR (||), causing a crash!',
+    difficulty: 3,
+    icon: '🔀',
+    concepts: ['Debugging', 'Boolean Logic'],
+    terrain: 'asteroids',
+    starterCode: {
+      javascript: `// 🐛 QA Bug Hunt: Wrong Operator
+// We need to thrust if X > 100 OR Y < 200. 
+
+rover.moveForward(20);
+rover.moveUp(150); // Now Y is 150 (300 - 150)
+
+// BUG: It uses && instead of || 
+if (rover.getX() > 100 && rover.getY() < 200) {
+  rover.thrust(10);
+  rover.sendSignal("Emergency Stop!");
+}
+
+rover.moveForward(100);
+`,
+      python: `# 🐛 QA Bug Hunt: Wrong Operator
+# We need to thrust if X > 100 OR Y < 200. 
+
+rover.move_forward(20)
+rover.move_up(150) # Now Y is 150 (300 - 150)
+
+# BUG: It uses and instead of or
+if rover.get_x() > 100 and rover.get_y() < 200:
+    rover.thrust(10)
+    rover.send_signal("Emergency Stop!")
+
+rover.move_forward(100)
+`,
+      java: `// 🐛 QA Bug Hunt: Wrong Operator
+public class Mission {
+    public static void execute() {
+        rover.moveForward(20);
+        rover.moveUp(150);
+        
+        // BUG: It uses && instead of ||
+        if (rover.getX() > 100 && rover.getY() < 200) {
+            rover.thrust(10);
+            rover.sendSignal("Emergency Stop!");
+        }
+        
+        rover.moveForward(100);
+    }
+}
+`,
+      cpp: `// 🐛 QA Bug Hunt: Wrong Operator
+void execute() {
+    rover.moveForward(20);
+    rover.moveUp(150);
+    
+    // BUG: It uses && instead of ||
+    if (rover.getX() > 100 && rover.getY() < 200) {
+        rover.thrust(10);
+        rover.sendSignal("Emergency Stop!");
+    }
+    
+    rover.moveForward(100);
+}
+`
+    },
+    hints: [
+      '💡 The condition is too strict. We want to stop if EITHER condition is true.',
+      '💡 In JS/Java/C++, change && to ||.',
+      '💡 In Python, change and to or.',
+    ],
+    validateSuccess: (state) => state.y === 0 && state.signalsSent > 0,
+    successMessage: '🎉 Logic fixed! Boolean operators are a very common source of bugs.',
+    reward: { scrap: 90, cores: 1 },
   }
 ];
 

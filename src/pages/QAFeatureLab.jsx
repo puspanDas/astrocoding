@@ -18,7 +18,8 @@ const LANGUAGES = {
 }
 
 export default function QAFeatureLab() {
-  const mission = qaMissions[0] // Load the buggy tester scenario
+  const [currentMission, setCurrentMission] = useState(0)
+  const mission = qaMissions[currentMission]
   
   const [language, setLanguage] = useState('javascript')
   const [showLangDropdown, setShowLangDropdown] = useState(false)
@@ -39,6 +40,18 @@ export default function QAFeatureLab() {
       consoleEndRef.current.scrollIntoView({ behavior: 'smooth' })
     }
   }, [consoleOutput])
+
+  function handleMissionChange(index) {
+    setCurrentMission(index)
+    setCode(qaMissions[index].starterCode[language] || qaMissions[index].starterCode['javascript'])
+    setResetKey(prev => prev + 1)
+    setConsoleOutput([])
+    setMissionResult(null)
+    setShowMissionComplete(false)
+    if (rendererRef.current) {
+      rendererRef.current.reset(qaMissions[index].terrain)
+    }
+  }
 
   function handleLanguageChange(lang) {
     setLanguage(lang)
@@ -97,7 +110,7 @@ export default function QAFeatureLab() {
 
     const animDuration = result.commands.length * 55 + 800
     setTimeout(() => {
-      if (!result.error && mission.validateSuccess(result.finalState)) {
+      if (!result.error && mission.validateSuccess(result.finalState, code)) {
         setMissionResult('success')
         setShowMissionComplete(true)
         setConsoleOutput(prev => [...prev, { type: 'success', text: mission.successMessage }])
@@ -130,10 +143,30 @@ export default function QAFeatureLab() {
     <div className="qa-lab">
       <StarField />
 
-      <div className="qa-lab__topbar">
+      <div className="qa-lab__topbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div className="qa-lab__title">
           <Bug size={18} className="text-red-400" />
           <span>QA Feature Lab - Testers Only</span>
+        </div>
+        <div className="qa-lab__mission-selector" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ fontSize: '0.85rem', color: '#a1a1aa' }}>Select Scenario:</span>
+          <select 
+            value={currentMission} 
+            onChange={(e) => handleMissionChange(Number(e.target.value))}
+            style={{ 
+              background: 'rgba(10, 14, 39, 0.8)', 
+              color: '#f8fafc', 
+              border: '1px solid rgba(148, 163, 184, 0.2)', 
+              padding: '6px 12px', 
+              borderRadius: '6px',
+              outline: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            {qaMissions.map((m, idx) => (
+              <option key={m.id} value={idx}>{m.icon} {m.title}</option>
+            ))}
+          </select>
         </div>
       </div>
 
