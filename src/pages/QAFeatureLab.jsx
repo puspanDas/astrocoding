@@ -222,9 +222,9 @@ export default function QAFeatureLab() {
           <div className="editor-body qa-editor-body">
             <Editor
               height="100%"
-              key={`qa-editor-${language}-${resetKey}`}
+              key={`qa-editor-${currentMission}-${language}-${resetKey}`}
               defaultLanguage={language}
-              defaultValue={code}
+              value={code}
               onChange={(val) => setCode(val || '')}
               theme="vs-dark"
               options={{
@@ -297,11 +297,22 @@ export default function QAFeatureLab() {
                   <h3>QA Test Passed!</h3>
                   <p>{mission.successMessage}</p>
                   <div className="mission-complete__actions">
+                    {currentMission < qaMissions.length - 1 && (
+                      <button
+                        className="btn-primary"
+                        onClick={() => {
+                          setShowMissionComplete(false)
+                          handleMissionChange(currentMission + 1)
+                        }}
+                      >
+                        Next Mission
+                      </button>
+                    )}
                     <button
-                      className="btn-primary"
+                      className={currentMission < qaMissions.length - 1 ? "btn-secondary" : "btn-primary"}
                       onClick={() => setShowMissionComplete(false)}
                     >
-                      Close
+                      {currentMission < qaMissions.length - 1 ? "Keep Testing" : "Close"}
                     </button>
                   </div>
                 </motion.div>
