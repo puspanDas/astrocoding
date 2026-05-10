@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Rocket, Menu, X, User } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import ThemeSwitcher from './ThemeSwitcher'
 import './Navbar.css'
 
 export default function Navbar() {
@@ -43,12 +42,11 @@ export default function Navbar() {
           <Link to="/leaderboard" className="navbar__link">Hall of Fame</Link>
           <Link to="/sandbox" className="navbar__link">Sandbox IDE</Link>
           <Link to="/system-design" className="navbar__link">Design Lab</Link>
-          <Link to="/qa-lab" className="navbar__link" style={{ color: '#f87171' }}>QA Lab</Link>
+          <Link to="/qa-lab" className="navbar__link navbar__link--qa">QA Lab</Link>
           <Link to="/profile" className="navbar__link navbar__link--profile">
             <User size={14} />
             <span>Profile</span>
           </Link>
-          <ThemeSwitcher />
           <Link to="/play" className="btn-primary navbar__cta">
             <span>Launch Mission</span>
             <Rocket size={16} />

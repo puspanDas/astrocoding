@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: rgba(5, 8, 22, 0.6);
+  background: #FFFFFF;
   border-radius: var(--radius-md);
   border: 1px solid var(--glass-border);
   overflow: hidden;
@@ -13,7 +13,7 @@
   align-items: center;
   gap: 10px;
   padding: 12px 16px;
-  background: rgba(108, 60, 224, 0.1);
+  background: rgba(99, 102, 241, 0.04);
   border-bottom: 1px solid var(--glass-border);
 }
 
@@ -21,7 +21,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--nebula-purple), var(--nebula-blue));
+  background: var(--nebula-purple);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -31,7 +31,7 @@
 .mentor-chat__name {
   font-family: var(--font-display);
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-primary);
 }
 
@@ -59,21 +59,21 @@
 
 .mentor-chat__msg--droid {
   align-self: flex-start;
-  background: rgba(108, 60, 224, 0.15);
-  border: 1px solid rgba(108, 60, 224, 0.2);
+  background: #F3F4F6;
+  border: 1px solid rgba(0, 0, 0, 0.04);
   color: var(--text-primary);
   border-bottom-left-radius: 4px;
 }
 
 .mentor-chat__msg--user {
   align-self: flex-end;
-  background: linear-gradient(135deg, var(--nebula-purple), var(--nebula-blue));
+  background: var(--nebula-purple);
   color: white;
   border-bottom-right-radius: 4px;
 }
 
 .mentor-chat__pre {
-  background: rgba(0, 0, 0, 0.4);
+  background: #F9FAFB;
   padding: 8px;
   border-radius: 6px;
   overflow-x: auto;
@@ -84,12 +84,12 @@
 }
 
 .mentor-chat__code {
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(99, 102, 241, 0.08);
   padding: 2px 4px;
   border-radius: 3px;
   font-family: var(--font-mono);
   font-size: 0.75rem;
-  color: #a78bfa;
+  color: var(--nebula-purple);
 }
 
 .mentor-chat__typing {
@@ -101,7 +101,7 @@
 .mentor-chat__typing span {
   width: 6px;
   height: 6px;
-  background: var(--nebula-purple-light);
+  background: var(--nebula-purple);
   border-radius: 50%;
   animation: typing-bounce 1.2s infinite;
 }
@@ -119,12 +119,12 @@
   gap: 8px;
   padding: 10px 12px;
   border-top: 1px solid var(--glass-border);
-  background: rgba(10, 14, 39, 0.5);
+  background: #F9FAFB;
 }
 
 .mentor-chat__input {
   flex: 1;
-  background: rgba(26, 31, 74, 0.6);
+  background: #FFFFFF;
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-sm);
   padding: 8px 12px;
@@ -137,7 +137,7 @@
 
 .mentor-chat__input:focus {
   border-color: var(--nebula-purple);
-  box-shadow: 0 0 10px var(--nebula-purple-glow);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
 .mentor-chat__input::placeholder {
@@ -148,7 +148,7 @@
   width: 36px;
   height: 36px;
   border-radius: var(--radius-sm);
-  background: linear-gradient(135deg, var(--nebula-purple), var(--nebula-blue));
+  background: var(--nebula-purple);
   color: white;
   display: flex;
   align-items: center;
@@ -158,28 +158,5 @@
 
 .mentor-chat__send:hover {
   transform: scale(1.05);
-  box-shadow: 0 4px 15px var(--nebula-purple-glow);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
 }
-
-/* Light Theme */
-[data-theme="light"] .mentor-chat {
-  background: rgba(255, 255, 255, 0.6);
-}
-
-[data-theme="light"] .mentor-chat__header {
-  background: rgba(91, 47, 212, 0.06);
-}
-
-[data-theme="light"] .mentor-chat__msg--droid {
-  background: rgba(91, 47, 212, 0.08);
-  border-color: rgba(91, 47, 212, 0.12);
-}
-
-[data-theme="light"] .mentor-chat__input-row {
-  background: rgba(0, 0, 0, 0.03);
-}
-
-[data-theme="light"] .mentor-chat__input {
-  background: rgba(255, 255, 255, 0.8);
-}
-

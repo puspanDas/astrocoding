@@ -19,44 +19,42 @@
 
 /* Python Faction */
 .faction-card--green .faction-card__badge {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(52, 211, 153, 0.1));
+  background: rgba(5, 150, 105, 0.08);
   border: 2px solid var(--python-primary);
-  box-shadow: 0 0 20px var(--python-glow);
 }
 
 .faction-card--green:hover {
-  border-color: rgba(16, 185, 129, 0.4);
-  box-shadow: 0 20px 60px var(--python-glow);
+  border-color: rgba(5, 150, 105, 0.25);
+  box-shadow: 0 8px 24px rgba(5, 150, 105, 0.08);
 }
 
 /* Java Faction */
 .faction-card--yellow .faction-card__badge {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(251, 191, 36, 0.1));
+  background: rgba(217, 119, 6, 0.08);
   border: 2px solid var(--java-primary);
-  box-shadow: 0 0 20px var(--java-glow);
 }
 
 .faction-card--yellow:hover {
-  border-color: rgba(245, 158, 11, 0.4);
-  box-shadow: 0 20px 60px var(--java-glow);
+  border-color: rgba(217, 119, 6, 0.25);
+  box-shadow: 0 8px 24px rgba(217, 119, 6, 0.08);
 }
 
 /* C++ Faction */
 .faction-card--red .faction-card__badge {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(248, 113, 113, 0.1));
+  background: rgba(220, 38, 38, 0.08);
   border: 2px solid var(--cpp-primary);
-  box-shadow: 0 0 20px var(--cpp-glow);
 }
 
 .faction-card--red:hover {
-  border-color: rgba(239, 68, 68, 0.4);
-  box-shadow: 0 20px 60px var(--cpp-glow);
+  border-color: rgba(220, 38, 38, 0.25);
+  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.08);
 }
 
 .faction-card__name {
   font-family: var(--font-display);
   font-size: 1.15rem;
   margin-bottom: 10px;
+  font-weight: 700;
 }
 
 .faction-card__desc {

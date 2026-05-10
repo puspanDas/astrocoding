@@ -13,7 +13,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), transparent 40%);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.03), transparent 40%);
   pointer-events: none;
   z-index: 0;
 }
@@ -25,7 +25,7 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  background: rgba(10, 14, 39, 0.4);
+  background: #F9FAFB;
   border-right: 1px solid var(--glass-border);
   position: relative;
   z-index: 1;
@@ -37,7 +37,7 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--nebula-blue), var(--nebula-purple));
+  background: var(--nebula-blue);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -57,7 +57,7 @@
 }
 
 @keyframes dailyChallengePulse {
-  0% { transform: scale(0.9); opacity: 0.8; }
+  0% { transform: scale(0.9); opacity: 0.6; }
   100% { transform: scale(1.4); opacity: 0; }
 }
 
@@ -66,7 +66,7 @@
   font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
-  color: var(--nebula-blue-light);
+  color: var(--nebula-blue);
   letter-spacing: 0.05em;
   text-align: center;
 }
@@ -100,10 +100,10 @@
   gap: 6px;
   font-size: 0.8rem;
   color: var(--warning);
-  background: rgba(245, 158, 11, 0.1);
+  background: rgba(217, 119, 6, 0.06);
   padding: 4px 10px;
   border-radius: 99px;
-  border: 1px solid rgba(245, 158, 11, 0.2);
+  border: 1px solid rgba(217, 119, 6, 0.12);
 }
 
 .daily-challenge__timer strong {
@@ -134,15 +134,15 @@
 }
 
 .tag--diff {
-  background: rgba(255, 255, 255, 0.05);
+  background: #F3F4F6;
   border: 1px solid var(--glass-border);
   color: var(--text-primary);
 }
 
 .tag--lang {
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  color: var(--python-secondary);
+  background: rgba(5, 150, 105, 0.06);
+  border: 1px solid rgba(5, 150, 105, 0.12);
+  color: var(--python-primary);
 }
 
 .daily-challenge__rewards {
@@ -172,7 +172,7 @@
   .daily-challenge {
     flex-direction: column;
   }
-  
+
   .daily-challenge__sidebar {
     border-right: none;
     border-bottom: 1px solid var(--glass-border);
@@ -180,26 +180,26 @@
     padding: 16px;
     justify-content: flex-start;
   }
-  
+
   .daily-challenge__header {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
-  
+
   .daily-challenge__meta {
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .daily-challenge__rewards {
     margin-left: 0;
   }
-  
+
   .daily-challenge__action {
     padding-top: 0;
   }
-  
+
   .daily-challenge__btn {
     width: 100%;
     justify-content: center;
