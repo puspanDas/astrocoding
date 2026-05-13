@@ -7,7 +7,6 @@ import {
   Users, TrendingUp, Download, Wand2, ZoomIn, ZoomOut, Maximize2,
   Undo2, Redo2, Zap, BookOpen, ExternalLink
 } from 'lucide-react'
-import StarField from '../components/StarField'
 import {
   COMPONENT_CATEGORIES, COMPONENT_MAP,
   scenarios, validateDesign, generateFlowSteps, analyzeSandboxDesign
@@ -614,7 +613,6 @@ export default function SystemDesign() {
 
   return (
     <div className="sysdesign">
-      <StarField />
 
       {/* ===== TOP BAR ===== */}
       <div className="sysdesign__topbar">

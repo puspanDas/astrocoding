@@ -1391,11 +1391,11 @@
   bottom: 20px;
   width: 320px;
   max-height: 60vh;
-  background: rgba(10, 14, 39, 0.92);
-  border: 1px solid rgba(99, 102, 241, 0.25);
+  background: var(--surface);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   backdrop-filter: blur(24px);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1), 0 0 30px rgba(99, 102, 241, 0.1);
+  box-shadow: var(--shadow-lg);
   z-index: 40;
   overflow: hidden;
   display: flex;
@@ -1407,8 +1407,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 14px 16px;
-  border-bottom: 1px solid rgba(99, 102, 241, 0.15);
-  background: rgba(99, 102, 241, 0.06);
+  border-bottom: 1px solid var(--glass-border);
+  background: rgba(0, 0, 0, 0.02);
 }
 
 .sysdesign__inspector-title-row {
@@ -1453,7 +1453,7 @@
   height: 28px;
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.06);
   color: var(--text-muted);
   cursor: pointer;
   transition: var(--transition-fast);
@@ -1499,11 +1499,11 @@
 }
 
 .sysdesign__inspector-text--highlight {
-  color: var(--nebula-cyan, #22d3ee);
-  background: rgba(34, 211, 238, 0.06);
+  color: var(--primary-accent);
+  background: rgba(99, 102, 241, 0.06);
   padding: 6px 10px;
   border-radius: var(--radius-sm);
-  border-left: 2px solid rgba(34, 211, 238, 0.4);
+  border-left: 2px solid rgba(99, 102, 241, 0.4);
 }
 
 .sysdesign__inspector-connections {
@@ -1530,11 +1530,11 @@
 }
 
 .sysdesign__inspector-conn-dir--outgoing {
-  color: var(--nebula-purple-light);
+  color: var(--primary-accent);
 }
 
 .sysdesign__inspector-conn-dir--incoming {
-  color: var(--python-secondary);
+  color: var(--green-secondary);
 }
 
 .sysdesign__inspector-tip {
@@ -1548,14 +1548,14 @@
 }
 
 .sysdesign__inspector-tip-icon {
-  color: var(--java-secondary);
+  color: var(--warning);
   flex-shrink: 0;
   margin-top: 1px;
 }
 
 .sysdesign__inspector-tip p {
   font-size: 0.75rem;
-  color: var(--java-secondary);
+  color: var(--warning);
   line-height: 1.5;
   margin: 0;
 }

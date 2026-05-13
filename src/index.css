@@ -1,34 +1,34 @@
 /* ============================================
-   AstroCode Design System
+   ProCode Design System
    Professional Light Theme
    ============================================ */
 
 :root {
   /* Core Colors — Clean Light Palette */
-  --space-void: #FAFBFC;
-  --space-deep: #F3F4F6;
-  --space-mid: #E5E7EB;
-  --space-surface: #FFFFFF;
-  --space-elevated: #FFFFFF;
+  --bg-main: #FAFBFC;
+  --bg-secondary: #F3F4F6;
+  --border-color: #E5E7EB;
+  --surface: #FFFFFF;
+  --surface-elevated: #FFFFFF;
 
   /* Primary Accent — Indigo */
-  --nebula-purple: #6366F1;
-  --nebula-purple-light: #818CF8;
-  --nebula-purple-glow: rgba(99, 102, 241, 0.15);
-  --nebula-blue: #3B82F6;
-  --nebula-blue-light: #60A5FA;
-  --nebula-cyan: #0EA5E9;
+  --primary-accent: #6366F1;
+  --primary-light: #818CF8;
+  --primary-glow: rgba(99, 102, 241, 0.15);
+  --secondary-accent: #3B82F6;
+  --secondary-light: #60A5FA;
+  --tertiary-accent: #0EA5E9;
 
-  /* Faction Colors */
-  --python-primary: #059669;
-  --python-secondary: #10B981;
-  --python-glow: rgba(5, 150, 105, 0.12);
-  --java-primary: #D97706;
-  --java-secondary: #F59E0B;
-  --java-glow: rgba(217, 119, 6, 0.12);
-  --cpp-primary: #DC2626;
-  --cpp-secondary: #EF4444;
-  --cpp-glow: rgba(220, 38, 38, 0.12);
+  /* Language Colors */
+  --green-primary: #059669;
+  --green-secondary: #10B981;
+  --green-glow: rgba(5, 150, 105, 0.12);
+  --yellow-primary: #D97706;
+  --yellow-secondary: #F59E0B;
+  --yellow-glow: rgba(217, 119, 6, 0.12);
+  --red-primary: #DC2626;
+  --red-secondary: #EF4444;
+  --red-glow: rgba(220, 38, 38, 0.12);
 
   /* Text — High contrast on white */
   --text-primary: #111827;
@@ -89,7 +89,7 @@ html {
 
 body {
   font-family: var(--font-body);
-  background: var(--space-void);
+  background: var(--bg-main);
   color: var(--text-primary);
   line-height: 1.6;
   overflow-x: hidden;
@@ -174,7 +174,7 @@ ul, ol {
   align-items: center;
   gap: 8px;
   padding: 14px 32px;
-  background: var(--nebula-purple);
+  background: var(--primary-accent);
   color: white;
   font-weight: 600;
   font-size: 1rem;
@@ -188,7 +188,7 @@ ul, ol {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, #4F46E5, var(--nebula-purple));
+  background: linear-gradient(135deg, #4F46E5, var(--primary-accent));
   opacity: 0;
   transition: var(--transition-base);
 }
@@ -222,7 +222,7 @@ ul, ol {
 }
 
 .btn-secondary:hover {
-  border-color: var(--nebula-purple);
+  border-color: var(--primary-accent);
   background: rgba(99, 102, 241, 0.05);
   transform: translateY(-2px);
 }
@@ -233,7 +233,7 @@ ul, ol {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--space-void);
+  background: var(--bg-main);
 }
 
 ::-webkit-scrollbar-thumb {
@@ -243,27 +243,6 @@ ul, ol {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #9CA3AF;
-}
-
-/* Animations */
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 12px rgba(99, 102, 241, 0.1); }
-  50% { box-shadow: 0 0 24px rgba(99, 102, 241, 0.15); }
-}
-
-@keyframes twinkle {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-@keyframes scan-line {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(100vh); }
 }
 
 /* Responsive */

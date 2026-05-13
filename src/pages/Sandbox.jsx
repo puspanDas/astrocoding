@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react'
 import Editor from '@monaco-editor/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Play, Code, Layout, LayoutTemplate, Terminal, Wand2, Check, X, AlertTriangle, Sparkles, Copy, Blocks } from 'lucide-react'
-import StarField from '../components/StarField'
 import AIAssistant from '../components/AIAssistant'
 import BlocklyEditor from '../components/BlocklyEditor'
 import { sandboxToolbox } from '../engine/blocks'
@@ -14,7 +13,7 @@ export default function Sandbox() {
   const [blockCode, setBlockCode] = useState('')
   const editorRef = useRef(null)
   
-  const [htmlCode, setHtmlCode] = useState('<div class="box">\n  <h1>Hello AstroCode!</h1>\n  <p>Build your own cosmic creations.</p>\n  <button onclick="changeColor()">Activate Sensors</button>\n</div>')
+  const [htmlCode, setHtmlCode] = useState('<div class="box">\n  <h1>Hello Developer!</h1>\n  <p>Build your own web applications.</p>\n  <button onclick="changeColor()">Activate</button>\n</div>')
   
   const [cssCode, setCssCode] = useState(`.box {
   background: rgba(40, 42, 54, 0.8);
@@ -51,7 +50,7 @@ button:hover {
 }
 `)
 
-  const [jsCode, setJsCode] = useState(`console.log("Welcome to AstroCode Sandbox!");
+  const [jsCode, setJsCode] = useState(`console.log("Welcome to the Code Sandbox!");
 
 function changeColor() {
   const box = document.querySelector('.box');
@@ -429,8 +428,6 @@ SELECT * FROM users;`)
 
   return (
     <div className="sandbox-demo">
-      <StarField />
-      
       <div className="sandbox-demo__topbar">
         <div className="sandbox-demo__title">
           <Code size={16} className="sandbox-demo__icon" />

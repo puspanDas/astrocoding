@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Rocket, Menu, X, User } from 'lucide-react'
+import { Code2, Menu, X, User } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import './Navbar.css'
 
@@ -29,27 +29,21 @@ export default function Navbar() {
       <div className="navbar__inner container">
         <Link to="/" className="navbar__logo">
           <div className="navbar__logo-icon">
-            <Rocket size={22} />
+            <Code2 size={22} />
           </div>
           <span className="navbar__logo-text">AstroCode</span>
         </Link>
 
         <div className={`navbar__links ${menuOpen ? 'navbar__links--open' : ''}`}>
           <a href="/#features" className="navbar__link">Features</a>
-          <a href="/#factions" className="navbar__link">Factions</a>
-          <a href="/#engine" className="navbar__link">Engine</a>
+          <a href="/#languages" className="navbar__link">Languages</a>
+          <a href="/#environments" className="navbar__link">Environments</a>
           <a href="/#personas" className="navbar__link">Who It's For</a>
-          <Link to="/leaderboard" className="navbar__link">Hall of Fame</Link>
           <Link to="/sandbox" className="navbar__link">Sandbox IDE</Link>
           <Link to="/system-design" className="navbar__link">Design Lab</Link>
-          <Link to="/qa-lab" className="navbar__link navbar__link--qa">QA Lab</Link>
-          <Link to="/profile" className="navbar__link navbar__link--profile">
-            <User size={14} />
-            <span>Profile</span>
-          </Link>
-          <Link to="/play" className="btn-primary navbar__cta">
-            <span>Launch Mission</span>
-            <Rocket size={16} />
+          <Link to="/sandbox" className="btn-primary navbar__cta">
+            <span>Start Coding</span>
+            <Code2 size={16} />
           </Link>
         </div>
 
