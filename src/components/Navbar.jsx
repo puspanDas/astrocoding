@@ -41,6 +41,7 @@ export default function Navbar() {
           <a href="/#personas" className="navbar__link">Who It's For</a>
           <Link to="/sandbox" className="navbar__link">Sandbox IDE</Link>
           <Link to="/system-design" className="navbar__link">Design Lab</Link>
+          <Link to="/circuit-lab" className="navbar__link">Circuit Lab</Link>
           <Link to="/sandbox" className="btn-primary navbar__cta">
             <span>Start Coding</span>
             <Code2 size={16} />

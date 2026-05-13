@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   Code2, MonitorPlay, Timer, Languages, Bot,
-  Users, Layers, Zap, ChevronRight, Cpu
+  Users, Layers, Zap, ChevronRight, Cpu, CircuitBoard
 } from 'lucide-react'
 import FeatureCard from '../components/FeatureCard'
 import './Home.css'
@@ -15,6 +15,7 @@ const features = [
   { icon: <Users size={28} />, title: 'Collaborative Projects', description: 'Work together in real-time. Share your sandbox environment with team members.' },
   { icon: <Zap size={28} />, title: 'Adaptive Environments', description: 'Scale from visual blocks for beginners to a full professional IDE for seasoned developers.' },
   { icon: <Cpu size={28} />, title: 'System Design Lab', description: 'Architect real systems with drag-and-drop components — from microservices to distributed platforms.' },
+  { icon: <CircuitBoard size={28} />, title: 'Circuit Design Lab', description: 'Design production-level circuits with simulation, waveform analysis, and AI-powered guidance for electronics engineers.' },
 ]
 
 const languages = [
@@ -249,6 +250,7 @@ export default function Home() {
             <a href="#languages">Languages</a>
             <a href="#environments">Environments</a>
             <Link to="/sandbox">Sandbox</Link>
+            <Link to="/circuit-lab">Circuit Lab</Link>
           </div>
           <div className="footer__copy">
             © 2026 AstroCode.
