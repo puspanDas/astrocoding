@@ -12,6 +12,7 @@ import {
   scenarios, validateDesign, generateFlowSteps, analyzeSandboxDesign
 } from '../engine/systemDesignScenarios'
 import './SystemDesign.css'
+import AIAssistant from '../components/AIAssistant'
 
 let nextComponentId = 1
 
@@ -1619,6 +1620,7 @@ export default function SystemDesign() {
           </motion.div>
         )}
       </AnimatePresence>
+      <AIAssistant />
     </div>
   )
 }

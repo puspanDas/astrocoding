@@ -22,6 +22,7 @@ class _State:
     model = None
     index = None
     chunks = None
+    llm_pipeline = None
 
 _state = _State()
 
@@ -43,7 +44,7 @@ def _get_model():
     if _state.model is None:
         try:
             from sentence_transformers import SentenceTransformer
-            print("🚀 Loading AI Model (sentence-transformers/all-MiniLM-L6-v2)...")
+            print("Loading AI Model (sentence-transformers/all-MiniLM-L6-v2)...")
             _state.model = SentenceTransformer('all-MiniLM-L6-v2')
         except ImportError:
             raise ImportError(
@@ -58,6 +59,26 @@ def _get_faiss():
         return faiss
     except ImportError:
         raise ImportError("faiss-cpu not installed. Run: pip install faiss-cpu")
+
+def _get_llm():
+    """Lazy load the text generation LLM."""
+    if _state.llm_pipeline is None:
+        try:
+            from transformers import pipeline
+            import torch
+            print("Loading Local AI Chat Model (Qwen/Qwen1.5-0.5B-Chat)...")
+            # Using CPU, this may take a minute to download on first run
+            _state.llm_pipeline = pipeline(
+                "text-generation", 
+                model="Qwen/Qwen1.5-0.5B-Chat", 
+                device=-1,
+                torch_dtype=torch.float32
+            )
+        except ImportError:
+            raise ImportError(
+                "transformers or torch not installed. Run: pip install transformers torch"
+            )
+    return _state.llm_pipeline
 
 class CodeChunk:
     def __init__(self, content: str, file_path: str, chunk_id: str):
@@ -180,7 +201,11 @@ def query_assistant(question: str) -> Dict[str, Any]:
                     "code": chunk.content
                 })
                 
-        explanation = _generate_topic_explanation(question, results)
+        try:
+            explanation = _generate_llm_explanation(question, results)
+        except Exception as llm_error:
+            print(f"LLM Generation failed: {llm_error}. Falling back to standard replies.")
+            explanation = _generate_topic_explanation(question, results)
         
         return {
             "success": True,
@@ -193,6 +218,33 @@ def query_assistant(question: str) -> Dict[str, Any]:
             "error": str(e),
             "explanation": "❌ **System Error:** Could not initialize AI engine. Have you installed `pip install sentence-transformers faiss-cpu`?"
         }
+
+def _generate_llm_explanation(question: str, results: List[Dict]) -> str:
+    pipeline = _get_llm()
+    
+    # Construct context from top results
+    context_parts = []
+    for r in results:
+        context_parts.append(f"File: {r['file']}\n```javascript\n{r['code']}\n```")
+    context = "\n\n".join(context_parts)
+    
+    prompt = f"""<|im_start|>system
+You are the AstroCode AI Assistant, a helpful coding mentor. Use the provided codebase context to answer the user's question accurately. If the context does not contain the answer, say so. Keep your answer concise, friendly, and format code blocks using markdown.
+<|im_end|>
+<|im_start|>user
+Context:
+{context}
+
+Question: {question}
+<|im_end|>
+<|im_start|>assistant
+"""
+    
+    print(f"Generating LLM response for: {question}")
+    output = pipeline(prompt, max_new_tokens=300, temperature=0.3, do_sample=False, return_full_text=False)
+    
+    generated_text = output[0]['generated_text'].strip()
+    return generated_text
 
 def _generate_topic_explanation(question: str, results: List[Dict]) -> str:
     question = question.lower()

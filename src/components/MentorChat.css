@@ -21,7 +21,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: var(--nebula-purple);
+  background: var(--primary-accent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -67,7 +67,7 @@
 
 .mentor-chat__msg--user {
   align-self: flex-end;
-  background: var(--nebula-purple);
+  background: var(--primary-accent);
   color: white;
   border-bottom-right-radius: 4px;
 }
@@ -89,7 +89,7 @@
   border-radius: 3px;
   font-family: var(--font-mono);
   font-size: 0.75rem;
-  color: var(--nebula-purple);
+  color: var(--primary-accent);
 }
 
 .mentor-chat__typing {
@@ -101,7 +101,7 @@
 .mentor-chat__typing span {
   width: 6px;
   height: 6px;
-  background: var(--nebula-purple);
+  background: var(--primary-accent);
   border-radius: 50%;
   animation: typing-bounce 1.2s infinite;
 }
@@ -136,7 +136,7 @@
 }
 
 .mentor-chat__input:focus {
-  border-color: var(--nebula-purple);
+  border-color: var(--primary-accent);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
@@ -148,7 +148,7 @@
   width: 36px;
   height: 36px;
   border-radius: var(--radius-sm);
-  background: var(--nebula-purple);
+  background: var(--primary-accent);
   color: white;
   display: flex;
   align-items: center;

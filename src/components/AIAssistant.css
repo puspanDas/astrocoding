@@ -12,7 +12,7 @@
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: var(--nebula-purple);
+  background: var(--primary-accent);
   color: #fff;
   display: flex;
   align-items: center;
@@ -72,7 +72,7 @@
   width: 40px;
   height: 40px;
   border-radius: 12px;
-  background: var(--nebula-purple);
+  background: var(--primary-accent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -170,7 +170,7 @@
 
 .ai-msg--user {
   align-self: flex-end;
-  background: var(--nebula-purple);
+  background: var(--primary-accent);
   color: #fff;
   border-bottom-right-radius: 4px;
   box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
@@ -181,7 +181,7 @@
   font-size: 0.92rem;
   font-weight: 700;
   margin: 0 0 8px 0;
-  color: var(--nebula-purple);
+  color: var(--primary-accent);
 }
 
 .ai-msg h3 {
@@ -215,7 +215,7 @@
   border-radius: 4px;
   font-family: 'Fira Code', 'Courier New', monospace;
   font-size: 0.76rem;
-  color: var(--nebula-purple);
+  color: var(--primary-accent);
 }
 
 .ai-msg ul, .ai-msg ol {
@@ -242,7 +242,7 @@
 .ai-chat__typing span {
   width: 7px;
   height: 7px;
-  background: var(--nebula-purple);
+  background: var(--primary-accent);
   border-radius: 50%;
   animation: ai-typing 1.4s infinite;
 }
@@ -268,7 +268,7 @@
   border-radius: 20px;
   background: rgba(99, 102, 241, 0.06);
   border: 1px solid rgba(99, 102, 241, 0.12);
-  color: var(--nebula-purple);
+  color: var(--primary-accent);
   font-size: 0.72rem;
   cursor: pointer;
   transition: all 0.2s;
@@ -303,7 +303,7 @@
 }
 
 .ai-chat__input:focus {
-  border-color: var(--nebula-purple);
+  border-color: var(--primary-accent);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
@@ -315,7 +315,7 @@
   width: 42px;
   height: 42px;
   border-radius: 12px;
-  background: var(--nebula-purple);
+  background: var(--primary-accent);
   color: white;
   border: none;
   display: flex;
